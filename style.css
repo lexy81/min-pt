@@ -160,6 +160,13 @@ footer span { color: var(--green-light); }
   .exercise-art { width: 60px; height: 60px; flex-basis: 60px; }
   .exercise .exercise-guide { font-size: .76rem; }
 }
+@media (max-width: 380px) {
+  .exercise { gap: 7px; padding: 8px; }
+  .exercise-art { width: 48px; height: 48px; flex-basis: 48px; }
+  .exercise-check { width: 24px; height: 24px; flex-basis: 24px; }
+  .lift-entry input { width: 82px; }
+  .exercise .exercise-guide { font-size: .74rem; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
