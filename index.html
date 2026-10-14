@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2e7d32">
+  <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
+  <title>Min PT</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand"><span class="brand-icon" aria-hidden="true">💪</span><div><h1>Min PT</h1><p>Din personlige treningspartner</p></div></div>
+    <nav class="main-nav" aria-label="Hovedmeny">
+      <a href="#oversikt">Oversikt</a><a href="#trening">Trening</a><a href="#progresjon">Progresjon</a><a href="#bilder">Bilder</a><a href="#kroppsvekt">Kroppsvekt</a><a href="#innstillinger">Innstillinger</a>
+    </nav>
+  </header>
+  <main>
+    <section class="card motivation" id="oversikt">
+      <p class="eyebrow">DIN PLAN, DITT TEMPO</p>
+      <h2>Dagens motivasjon</h2>
+      <p class="motivation-quote">Målet er ikke å trene perfekt. Målet er å møte opp.</p>
+      <div class="overview-stats">
+        <div><span class="stat-label">Økter fullført</span><strong id="workoutCount">0</strong></div>
+        <div><span class="stat-label">Siste kroppsvekt</span><strong id="overviewWeight">–</strong></div>
+        <div><span class="stat-label">Dagens økt</span><strong id="todayWorkout">–</strong></div>
+      </div>
+    </section>
+
+    <section id="trening" class="page-section">
+      <div class="section-heading"><div><p class="eyebrow">STYRKEPROGRAM</p><h2>Treningsplan</h2></div></div>
+      <div id="workoutPlan" class="workout-plan"></div>
+      <section class="card custom-card">
+        <h2>Egne øvelser</h2>
+        <p class="subtle">Legg til øvelser du vil ha med i treningsloggen.</p>
+        <form id="exerciseForm" class="inline-form">
+          <label class="visually-hidden" for="exerciseInput">Ny øvelse</label>
+          <input type="text" id="exerciseInput" maxlength="60" placeholder="Ny øvelse" required>
+          <button type="submit">Legg til</button>
+        </form>
+        <ul id="customExercises" class="custom-list"></ul>
+      </section>
+    </section>
+
+    <section id="progresjon" class="page-section">
+      <div class="section-heading"><div><p class="eyebrow">SMÅ STEG GIR RESULTATER</p><h2>Progresjon</h2></div></div>
+      <section class="card">
+        <div class="progress-summary"><div><span class="stat-label">Fullførte økter</span><strong id="progressWorkoutCount">0</strong></div><div><span class="stat-label">Vektendring</span><strong id="weightChange">–</strong></div></div>
+        <h3 class="history-heading">Vektutvikling</h3>
+        <div id="weightChart" class="weight-chart" role="img" aria-label="Graf over vektmålinger"></div>
+        <ul id="weightHistory" class="weight-history"></ul>
+      </section>
+    </section>
+
+    <section id="kroppsvekt" class="page-section">
+      <div class="section-heading"><div><p class="eyebrow">FØLG UTVIKLINGEN</p><h2>Kroppsvekt</h2></div></div>
+      <section class="card">
+        <h3>Registrer kroppsvekt</h3>
+        <p id="currentWeight" class="current-weight">Ingen målinger registrert ennå.</p>
+        <form id="weightForm" class="inline-form weight-form">
+          <label class="visually-hidden" for="weightInput">Kroppsvekt i kilo</label>
+          <input type="number" id="weightInput" min="1" max="500" step="0.1" inputmode="decimal" placeholder="Vekt i kg" required>
+          <label class="visually-hidden" for="weightDate">Dato for måling</label>
+          <input type="date" id="weightDate" required>
+          <button type="submit">Lagre vekt</button>
+        </form>
+      </section>
+    </section>
+
+    <section id="bilder" class="page-section">
+      <div class="section-heading"><div><p class="eyebrow">DIN PERSONLIGE FREMGANG</p><h2>Treningsbilder</h2></div></div>
+      <section class="card photo-card">
+        <h3>Ta et bilde av fremgangen din</h3>
+        <p class="subtle">Bildene lagres privat på denne enheten. Ta et nytt bilde med kameraet eller velg et fra telefonen.</p>
+        <form id="photoForm" class="photo-form">
+          <label class="photo-field">Dato<input type="date" id="photoDate" required></label>
+          <label class="photo-field">Treningsdag
+            <select id="photoWorkout" aria-label="Velg treningsdag for bildet">
+              <option value="Egen fremgang">Egen fremgang</option>
+              <option value="Mandag">Mandag</option>
+              <option value="Onsdag">Onsdag</option>
+              <option value="Fredag">Fredag</option>
+            </select>
+          </label>
+          <label class="visually-hidden" for="photoInput">Ta eller velg et bilde av deg selv</label>
+          <input class="visually-hidden" type="file" id="photoInput" accept="image/*" capture="user">
+          <button type="button" id="choosePhoto" class="photo-button">📷 Ta eller velg bilde</button>
+        </form>
+        <p class="photo-privacy">Bildene blir ikke lastet opp eller delt.</p>
+        <div id="photoGallery" class="photo-gallery" aria-live="polite"></div>
+      </section>
+    </section>
+
+    <section id="innstillinger" class="page-section">
+      <div class="section-heading"><div><p class="eyebrow">DIN APP</p><h2>Innstillinger</h2></div></div>
+      <section class="card settings-card">
+        <label class="theme-setting" for="themeToggle"><span><strong>Mørkt tema</strong><small>Skånsomt for øynene når du trener.</small></span><input type="checkbox" id="themeToggle" checked><span class="switch" aria-hidden="true"></span></label>
+        <div class="settings-row"><span><strong>Dataene dine</strong><small>Treningsdata og bilder lagres lokalt på denne enheten.</small></span><button type="button" class="button-secondary" id="clearData">Slett alle data</button></div>
+        <button type="button" id="installButton" class="install-button" hidden>Installer Min PT</button>
+      </section>
+    </section>
+  </main>
+  <footer>Min PT <span aria-hidden="true">·</span> Én økt om gangen</footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
