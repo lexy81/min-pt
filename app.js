@@ -5,32 +5,32 @@ const workouts = [
     day: "Mandag",
     title: "Bryst, skuldre og triceps",
     exercises: [
-      { name: "Brystpress", detail: "3 sett × 10–12 repetisjoner" },
-      { name: "Skulderpress", detail: "3 sett × 10–12 repetisjoner" },
-      { name: "Pec Deck", detail: "3 sett × 12 repetisjoner" },
-      { name: "Triceps Pushdown", detail: "3 sett × 12 repetisjoner" },
-      { name: "Tredemølle", detail: "15 minutter rask gange", timed: true }
+      { name: "Brystpress", detail: "3 sett × 10–12 repetisjoner", image: "chest-press", guide: "Sitt med ryggen mot puten. Skyv håndtakene frem fra brystet, og senk kontrollert tilbake." },
+      { name: "Skulderpress", detail: "3 sett × 10–12 repetisjoner", image: "shoulder-press", guide: "Sitt med ryggen støttet. Press håndtakene opp over hodet uten å låse albuene." },
+      { name: "Pec Deck", detail: "3 sett × 12 repetisjoner", image: "pec-deck", guide: "Hold en lett bøy i albuene. Før armene sammen foran brystet, og åpne rolig igjen." },
+      { name: "Triceps Pushdown", detail: "3 sett × 12 repetisjoner", image: "triceps-pushdown", guide: "Hold albuene tett inntil kroppen. Press håndtaket ned til armene er nesten strake." },
+      { name: "Tredemølle", detail: "15 minutter rask gange", image: "treadmill", guide: "Gå i et tempo der du blir varm, men fortsatt kan snakke. Hold deg i midten av båndet.", timed: true }
     ]
   },
   {
     day: "Onsdag",
     title: "Rygg og biceps",
     exercises: [
-      { name: "Nedtrekk", detail: "3 sett × 10–12 repetisjoner" },
-      { name: "Sittende roing", detail: "3 sett × 10–12 repetisjoner" },
-      { name: "Rygghev-maskin", detail: "3 sett × 12 repetisjoner" },
-      { name: "Biceps Curl", detail: "3 sett × 12 repetisjoner" }
+      { name: "Nedtrekk", detail: "3 sett × 10–12 repetisjoner", image: "lat-pulldown", guide: "Sitt med lårene under puten. Trekk stangen ned foran kroppen mot øvre bryst." },
+      { name: "Sittende roing", detail: "3 sett × 10–12 repetisjoner", image: "seated-row", guide: "Sitt med lang rygg. Trekk håndtaket mot magen, og før armene rolig frem igjen." },
+      { name: "Rygghev-maskin", detail: "3 sett × 12 repetisjoner", image: "back-extension", guide: "Plasser puten mot øvre rygg. Strekk overkroppen bakover med kontroll, uten å svaie." },
+      { name: "Biceps Curl", detail: "3 sett × 12 repetisjoner", image: "biceps-curl", guide: "Hold albuene inntil kroppen. Bøy armene opp mot skuldrene, og senk rolig." }
     ]
   },
   {
     day: "Fredag",
     title: "Bein og mage",
     exercises: [
-      { name: "Beinpress", detail: "3 sett × 12 repetisjoner" },
-      { name: "Leg Curl", detail: "3 sett × 12 repetisjoner" },
-      { name: "Leg Extension", detail: "3 sett × 12 repetisjoner" },
-      { name: "Magemaskin", detail: "3 sett × 15 repetisjoner" },
-      { name: "Planke", detail: "3 × 30 sekunder", timed: true }
+      { name: "Beinpress", detail: "3 sett × 12 repetisjoner", image: "leg-press", guide: "Sett føttene omtrent i skulderbredde. Senk plattformen til knærne er bøyd, og press opp igjen." },
+      { name: "Leg Curl", detail: "3 sett × 12 repetisjoner", image: "leg-curl", guide: "Legg puten bak anklene. Bøy knærne og trekk hælene mot setet." },
+      { name: "Leg Extension", detail: "3 sett × 12 repetisjoner", image: "leg-extension", guide: "Sitt med puten foran anklene. Strekk knærne rolig, og senk beina kontrollert." },
+      { name: "Magemaskin", detail: "3 sett × 15 repetisjoner", image: "ab-machine", guide: "Spenn magen og bøy overkroppen fremover. Unngå å dra med armene." },
+      { name: "Planke", detail: "3 × 30 sekunder", image: "plank", guide: "Støtt deg på underarmer og tær. Hold kroppen rett, spenn mage og sete.", timed: true }
     ]
   }
 ];
@@ -98,7 +98,8 @@ function renderWorkouts() {
       const savedWeight = state.lifts[date]?.[workout.day]?.[exercise.name] ?? "";
       const previousWeight = getPreviousLiftWeight(workout.day, exercise.name, date);
       return `<li class="exercise">
-        <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p>
+        <svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg#${exercise.image}"></use></svg>
+        <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
         </div>
         <label class="exercise-check"><input type="checkbox" data-workout="${escapeHtml(key)}" ${checked ? "checked" : ""} aria-label="Marker ${escapeHtml(exercise.name)} som fullført"><span class="checkmark"></span></label>

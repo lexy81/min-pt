@@ -1,4 +1,4 @@
-const CACHE_NAME = "min-pt-cache-v3";
+const CACHE_NAME = "min-pt-cache-v4";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const APP_FILES = [
   "./app.js",
   "./manifest.json",
   "./service-worker.js",
+  "./images/exercises.svg",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];
