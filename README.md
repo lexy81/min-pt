@@ -1,0 +1,2 @@
+# min-pt
+trening
