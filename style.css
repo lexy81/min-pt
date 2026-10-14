@@ -52,9 +52,15 @@ h3 { margin: 0 0 5px; font-size: 1rem; }
 .day-label, .today-label { color: var(--green-light); font-size: .8rem; font-weight: 700; }
 .today-label { padding: 4px 9px; border-radius: 14px; background: #244626; }
 .exercise-list, .custom-list, .weight-history { margin: 0; padding: 0; list-style: none; }
-.exercise { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding: 11px 12px; border-radius: 8px; background: var(--surface-raised); }
+.exercise { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-top: 10px; padding: 11px 12px; border-radius: 8px; background: var(--surface-raised); }
 .exercise h3 { margin-bottom: 2px; }
 .exercise p, .subtle { margin: 0; color: var(--muted); font-size: .87rem; }
+.exercise-main { display: grid; min-width: 0; gap: 2px; }
+.lift-entry { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 9px; margin-top: 7px; }
+.lift-entry label { display: grid; gap: 3px; color: var(--text); font-size: .78rem; font-weight: 700; }
+.lift-entry label span { color: var(--muted); font-weight: 400; }
+.lift-entry input { width: 108px; min-height: 36px; padding: 7px 9px; }
+.previous-lift { padding-bottom: 8px; color: var(--muted); font-size: .76rem; }
 .exercise-check { position: relative; display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; cursor: pointer; }
 .exercise-check input { position: absolute; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .checkmark { width: 23px; height: 23px; border: 2px solid #72746f; border-radius: 7px; }

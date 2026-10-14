@@ -15,10 +15,11 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 ## Funksjoner
 
 - Treningsprogram for mandag, onsdag og fredag med avkryssing av øvelser
+- Registrer løftevekt for hver styrkeøvelse, med forrige vekt som hint
 - Kroppsvekt med historikk og utviklingsgraf
 - Egne øvelser med mulighet for å fjerne dem
 - Private fremgangsbilder knyttet til dato og treningsdag
 - Mørkt og lyst tema, med mørkt tema som standard
 - Lokal lagring og støtte for installasjon/frakoblet bruk
 
-Fremgangsbilder lagres i nettleserens lokale bildelager og komprimeres for å spare plass. De lastes ikke opp. Bruk «Slett alle data» i innstillingene for å slette bilder og treningsdata fra enheten.
+Fremgangsbilder lagres i nettleserens lokale bildelager og komprimeres for å spare plass. De lastes ikke opp. Løftevekter lagres per øvelse og treningsdato, og forrige registrering vises som hjelp. Bruk «Slett alle data» i innstillingene for å slette bilder og treningsdata fra enheten.

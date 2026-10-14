@@ -54,6 +54,7 @@ function loadState() {
       exercises: Array.isArray(saved.exercises)
         ? saved.exercises.filter((item) => typeof item === "string")
         : Array.isArray(legacyExercises) ? legacyExercises.filter((item) => typeof item === "string") : [],
+      lifts: saved.lifts && typeof saved.lifts === "object" ? saved.lifts : {},
       completed: saved.completed && typeof saved.completed === "object" ? saved.completed : {},
       theme: saved.theme === "light" ? "light" : "dark"
     };
@@ -93,13 +94,29 @@ function renderWorkouts() {
     const rows = workout.exercises.map((exercise, index) => {
       const key = `${workout.day}-${index}`;
       const checked = state.completed[localDate()]?.includes(key);
+      const date = localDate();
+      const savedWeight = state.lifts[date]?.[workout.day]?.[exercise.name] ?? "";
+      const previousWeight = getPreviousLiftWeight(workout.day, exercise.name, date);
       return `<li class="exercise">
-        <div><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p></div>
+        <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p>
+          ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
+        </div>
         <label class="exercise-check"><input type="checkbox" data-workout="${escapeHtml(key)}" ${checked ? "checked" : ""} aria-label="Marker ${escapeHtml(exercise.name)} som fullført"><span class="checkmark"></span></label>
       </li>`;
     }).join("");
     return `<section class="card workout-card"><div class="workout-heading"><div><span class="day-label">${workout.day}</span><h2>${escapeHtml(workout.title)}</h2></div>${workout.day.toLowerCase() === today ? '<span class="today-label">I dag</span>' : ""}</div><ul class="exercise-list">${rows}</ul></section>`;
   }).join("");
+}
+
+function getPreviousLiftWeight(day, exercise, beforeDate) {
+  const previousDates = Object.keys(state.lifts)
+    .filter((date) => date < beforeDate)
+    .sort((first, second) => second.localeCompare(first));
+  for (const date of previousDates) {
+    const weight = state.lifts[date]?.[day]?.[exercise];
+    if (Number.isFinite(weight)) return weight;
+  }
+  return null;
 }
 
 function renderExercises() {
@@ -412,6 +429,28 @@ document.querySelector("#customExercises").addEventListener("click", (event) => 
 });
 
 document.querySelector("#workoutPlan").addEventListener("change", (event) => {
+  const weightInput = event.target.closest("[data-lift-weight]");
+  if (weightInput) {
+    const value = weightInput.value === "" ? null : Number(weightInput.value);
+    if (value !== null && (!Number.isFinite(value) || value < 0.5 || value > 1000)) {
+      showToast("Skriv inn en gyldig treningsvekt mellom 0,5 og 1000 kg.");
+      return;
+    }
+    const date = localDate();
+    const { liftDay, liftExercise } = weightInput.dataset;
+    if (!state.lifts[date]) state.lifts[date] = {};
+    if (!state.lifts[date][liftDay]) state.lifts[date][liftDay] = {};
+    if (value === null) {
+      delete state.lifts[date][liftDay][liftExercise];
+      if (Object.keys(state.lifts[date][liftDay]).length === 0) delete state.lifts[date][liftDay];
+      if (Object.keys(state.lifts[date]).length === 0) delete state.lifts[date];
+    } else {
+      state.lifts[date][liftDay][liftExercise] = value;
+    }
+    saveState();
+    showToast(value === null ? "Vektregistreringen er fjernet." : `Lagret: ${formatWeight(value)} kg for ${liftExercise}.`);
+    return;
+  }
   const checkbox = event.target.closest("[data-workout]");
   if (!checkbox) return;
   const date = localDate();
@@ -439,6 +478,7 @@ document.querySelector("#clearData").addEventListener("click", async () => {
     return;
   }
   state.weights = [];
+  state.lifts = {};
   state.exercises = [];
   state.completed = {};
   localStorage.removeItem("weight");
