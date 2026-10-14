@@ -39,6 +39,7 @@ let state = loadState();
 let installPrompt = null;
 let toastTimer;
 let photoObjectUrls = [];
+let selectedStrengthExercise = "Brystpress";
 
 function loadState() {
   try {
@@ -159,6 +160,141 @@ function renderWeights() {
   document.querySelector("#weightChange").textContent = change === null
     ? "–" : `${change > 0 ? "+" : ""}${formatWeight(change)} kg`;
   renderChart(history);
+  renderStrengthProgress();
+}
+
+function renderStrengthProgress() {
+  const select = document.querySelector("#strengthExercise");
+  const liftableExercises = workouts.flatMap((workout) =>
+    workout.exercises.filter((exercise) => !exercise.timed).map((exercise) => exercise.name)
+  );
+  if (!liftableExercises.includes(selectedStrengthExercise)) {
+    selectedStrengthExercise = liftableExercises[0];
+  }
+  select.replaceChildren();
+  liftableExercises.forEach((name) => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    option.selected = name === selectedStrengthExercise;
+    select.append(option);
+  });
+
+  const history = Object.entries(state.lifts)
+    .map(([date, days]) => {
+      for (const workout of workouts) {
+        const weight = days?.[workout.day]?.[selectedStrengthExercise];
+        if (Number.isFinite(weight)) return { date, weight };
+      }
+      return null;
+    })
+    .filter(Boolean)
+    .sort((first, second) => first.date.localeCompare(second.date));
+
+  const summary = document.querySelector("#strengthSummary");
+  const chart = document.querySelector("#strengthChart");
+  const historyList = document.querySelector("#strengthHistory");
+  chart.replaceChildren();
+  historyList.replaceChildren();
+  chart.setAttribute("aria-label", `Graf over registrert løftevekt i ${selectedStrengthExercise}`);
+
+  if (history.length === 0) {
+    summary.textContent = "Registrer vekten på øvelsen under «Trening» for å starte grafen.";
+    const empty = document.createElement("p");
+    empty.className = "chart-empty";
+    empty.textContent = "Ingen registrerte løftevekter ennå.";
+    chart.append(empty);
+    return;
+  }
+
+  const first = history[0];
+  const latest = history[history.length - 1];
+  const change = latest.weight - first.weight;
+  if (history.length === 1) {
+    summary.textContent = `Siste registrering: ${formatWeight(latest.weight)} kg · Legg inn en ny økt for å se utviklingen.`;
+  } else {
+    const direction = change > 0 ? "sterkere med" : change < 0 ? "endring på" : "samme vekt";
+    summary.textContent = `${history.length} økter · ${formatWeight(first.weight)} → ${formatWeight(latest.weight)} kg (${direction} ${formatWeight(Math.abs(change))} kg)`;
+  }
+
+  drawStrengthChart(chart, history, selectedStrengthExercise);
+  [...history].reverse().slice(0, 8).forEach((entry) => {
+    const row = document.createElement("li");
+    const date = document.createElement("span");
+    date.textContent = formatDate(entry.date);
+    const weight = document.createElement("strong");
+    weight.textContent = `${formatWeight(entry.weight)} kg`;
+    row.append(date, weight);
+    historyList.append(row);
+  });
+}
+
+function drawStrengthChart(container, history, exerciseName) {
+  const width = 520;
+  const height = 230;
+  const margin = { top: 22, right: 18, bottom: 42, left: 50 };
+  const values = history.map((entry) => entry.weight);
+  const lowest = Math.min(...values);
+  const highest = Math.max(...values);
+  const padding = Math.max((highest - lowest) * 0.15, highest * 0.05, 1);
+  const min = Math.max(0, lowest - padding);
+  const max = highest + padding;
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const pointX = (index) => margin.left + (history.length === 1 ? plotWidth / 2 : index * plotWidth / (history.length - 1));
+  const pointY = (weight) => margin.top + (max - weight) / (max - min) * plotHeight;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `${exerciseName}: ${history.map((entry) => `${formatDate(entry.date)} ${formatWeight(entry.weight)} kilo`).join(", ")}`);
+
+  for (let index = 0; index <= 4; index++) {
+    const y = margin.top + plotHeight * index / 4;
+    const value = max - (max - min) * index / 4;
+    const grid = document.createElementNS(svg.namespaceURI, "line");
+    grid.setAttribute("x1", margin.left);
+    grid.setAttribute("x2", width - margin.right);
+    grid.setAttribute("y1", y);
+    grid.setAttribute("y2", y);
+    grid.setAttribute("class", "strength-grid");
+    svg.append(grid);
+    const label = document.createElementNS(svg.namespaceURI, "text");
+    label.setAttribute("x", margin.left - 8);
+    label.setAttribute("y", y + 4);
+    label.setAttribute("text-anchor", "end");
+    label.setAttribute("class", "strength-axis-label");
+    label.textContent = formatWeight(value);
+    svg.append(label);
+  }
+
+  const points = history.map((entry, index) => ({ x: pointX(index), y: pointY(entry.weight), ...entry }));
+  if (points.length > 1) {
+    const line = document.createElementNS(svg.namespaceURI, "polyline");
+    line.setAttribute("points", points.map((point) => `${point.x},${point.y}`).join(" "));
+    line.setAttribute("class", "strength-line");
+    svg.append(line);
+  }
+  points.forEach((point, index) => {
+    const marker = document.createElementNS(svg.namespaceURI, "circle");
+    marker.setAttribute("cx", point.x);
+    marker.setAttribute("cy", point.y);
+    marker.setAttribute("r", "5");
+    marker.setAttribute("class", "strength-point");
+    const title = document.createElementNS(svg.namespaceURI, "title");
+    title.textContent = `${formatDate(point.date)}: ${formatWeight(point.weight)} kg`;
+    marker.append(title);
+    svg.append(marker);
+
+    const date = document.createElementNS(svg.namespaceURI, "text");
+    date.setAttribute("x", point.x);
+    date.setAttribute("y", height - 12);
+    date.setAttribute("text-anchor", history.length > 5 && index % 2 ? "end" : history.length > 5 ? "start" : "middle");
+    date.setAttribute("class", "strength-axis-label");
+    date.textContent = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" })
+      .format(new Date(`${point.date}T12:00:00`));
+    svg.append(date);
+  });
+  container.append(svg);
 }
 
 function renderChart(history) {
@@ -407,6 +543,11 @@ document.querySelector("#weightForm").addEventListener("submit", (event) => {
   renderWeights();
   document.querySelector("#weightInput").value = "";
   showToast("Vektmålingen er lagret.");
+});
+
+document.querySelector("#strengthExercise").addEventListener("change", (event) => {
+  selectedStrengthExercise = event.currentTarget.value;
+  renderStrengthProgress();
 });
 
 document.querySelector("#exerciseForm").addEventListener("submit", (event) => {

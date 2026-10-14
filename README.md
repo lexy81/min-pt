@@ -17,6 +17,7 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 - Treningsprogram for mandag, onsdag og fredag med avkryssing av øvelser
 - Illustrasjon og enkel teknikkforklaring ved hver øvelse
 - Registrer løftevekt for hver styrkeøvelse, med forrige vekt som hint
+- Fremgangsgraf for løftevekt med valg av øvelse
 - Kroppsvekt med historikk og utviklingsgraf
 - Egne øvelser med mulighet for å fjerne dem
 - Private fremgangsbilder knyttet til dato og treningsdag

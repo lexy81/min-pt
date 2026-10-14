@@ -85,6 +85,21 @@ button:hover { background: #388e3c; }
 .chart-line { fill: none; stroke: #81c784; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
 .chart-point { fill: #c8e6c9; }
 .chart-empty { display: grid; height: 100%; place-items: center; margin: 0; padding: 16px; color: var(--muted); text-align: center; font-size: .88rem; }
+.strength-progress { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.strength-heading { margin-bottom: 12px; }
+.strength-heading h3 { margin-bottom: 4px; }
+.strength-heading .subtle { font-size: .8rem; }
+.strength-picker { display: grid; max-width: 300px; gap: 5px; color: var(--muted); font-size: .8rem; font-weight: 700; }
+.strength-picker select { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.strength-summary { margin: 13px 0 9px; color: var(--green-light); font-size: .88rem; font-weight: 700; }
+.strength-chart { height: 230px; overflow: hidden; border-radius: 8px; background: var(--surface-raised); }
+.strength-chart svg { display: block; width: 100%; height: 100%; }
+.strength-grid { stroke: var(--border); stroke-width: 1; }
+.strength-axis-label { fill: var(--muted); font: 11px Arial, sans-serif; }
+.strength-line { fill: none; stroke: #81c784; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.strength-point { fill: var(--surface); stroke: #81c784; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.strength-history { max-height: 230px; overflow-y: auto; }
+.strength-picker select:focus-visible { outline: 2px solid var(--green-light); outline-offset: 2px; }
 .weight-history { margin-top: 12px; }
 .weight-history li, .custom-exercise, .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 43px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: .9rem; }
 .weight-history li:last-child, .custom-exercise:last-child { border-bottom: 0; }
@@ -135,6 +150,7 @@ footer span { color: var(--green-light); }
 [data-theme="light"] .card { border-color: var(--border); }
 [data-theme="light"] .motivation-quote { color: #424740; }
 [data-theme="light"] input { border-color: var(--border); background: #fff; }
+[data-theme="light"] .strength-picker select { border-color: var(--border); background: #fff; }
 [data-theme="light"] .today-label { background: #e3f2e1; }
 [data-theme="light"] .chart-empty { color: var(--muted); }
 [data-theme="light"] .remove-exercise { color: var(--muted); }
