@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=13">
+  <link rel="manifest" href="manifest.json?v=14">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=13">
-  <script src="app.js?v=13" defer></script>
+  <link rel="stylesheet" href="style.css?v=14">
+  <script src="app.js?v=14" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -62,8 +62,8 @@
               <option value="Stakemaskin">Stakemaskin</option>
             </select>
           </label>
-          <label class="cardio-field">Tid (minutter)
-            <input type="number" id="cardioDuration" min="1" max="600" step="0.1" inputmode="decimal" placeholder="f.eks. 10" required>
+          <label class="cardio-field">Tid (sekunder)
+            <input type="number" id="cardioDuration" min="1" max="36000" step="1" inputmode="numeric" placeholder="f.eks. 114" required>
           </label>
           <label class="cardio-field">Distanse (km)
             <input type="number" id="cardioDistance" min="0" max="1000" step="0.01" inputmode="decimal" placeholder="f.eks. 1,5" required>
@@ -135,7 +135,7 @@
           </div>
           <div class="cardio-summary">
             <div><span class="stat-label">Økter</span><strong id="cardioProgressCount">0</strong></div>
-            <div><span class="stat-label">Tid</span><strong id="cardioProgressDuration">0 min</strong></div>
+            <div><span class="stat-label">Samlet tid</span><strong id="cardioProgressDuration">0 sek</strong></div>
             <div><span class="stat-label">Distanse</span><strong id="cardioProgressDistance">0 km</strong></div>
           </div>
           <p id="cardioChartSummary" class="strength-summary"></p>

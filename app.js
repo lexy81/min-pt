@@ -123,7 +123,7 @@ function loadState() {
       cardioSessions: Array.isArray(saved.cardioSessions) ? saved.cardioSessions.filter((entry) =>
         entry && typeof entry.id === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date) &&
         cardioActivities.includes(entry.activity) &&
-        Number.isFinite(entry.duration) && entry.duration >= 1 && entry.duration <= 600 &&
+        Number.isFinite(entry.duration) && entry.duration > 0 && entry.duration <= 600 &&
         Number.isFinite(entry.distance) && entry.distance >= 0 && entry.distance <= 1000
       ) : [],
       theme: saved.theme === "light" ? "light" : "dark"
@@ -172,7 +172,7 @@ function renderWorkouts() {
       const previousWeight = getPreviousLiftWeight(workout.day, exercise.name, date);
       return `<li class="exercise">
         ${exercise.image
-          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=13#${escapeHtml(exercise.image)}"></use></svg>`
+          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=14#${escapeHtml(exercise.image)}"></use></svg>`
           : '<span class="exercise-art exercise-art-placeholder" aria-hidden="true">🏋️</span>'}
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
@@ -442,10 +442,10 @@ function renderCardioProgress() {
     session.date >= startDate && session.date <= today &&
     (activity === "Alle" || session.activity === activity)
   );
-  const totalDuration = sessions.reduce((total, session) => total + session.duration, 0);
+  const totalDurationSeconds = sessions.reduce((total, session) => total + Math.round(session.duration * 60), 0);
   const totalDistance = sessions.reduce((total, session) => total + session.distance, 0);
   document.querySelector("#cardioProgressCount").textContent = String(sessions.length);
-  document.querySelector("#cardioProgressDuration").textContent = `${formatWeight(totalDuration)} min`;
+  document.querySelector("#cardioProgressDuration").textContent = formatDuration(totalDurationSeconds);
   document.querySelector("#cardioProgressDistance").textContent = `${formatDistance(totalDistance)} km`;
 
   const chart = document.querySelector("#cardioChart");
@@ -460,7 +460,7 @@ function renderCardioProgress() {
     chart.append(empty);
     return;
   }
-  summary.textContent = `${sessions.length} økter · ${formatWeight(totalDuration)} min · ${formatDistance(totalDistance)} km`;
+  summary.textContent = `${sessions.length} økter · ${formatDuration(totalDurationSeconds)} · ${formatDistance(totalDistance)} km`;
 
   const dailyDistance = new Map();
   sessions.forEach((session) => {
@@ -592,7 +592,7 @@ function renderCardioSessions() {
     date.dateTime = session.date;
     date.textContent = formatDate(session.date);
     const measurements = document.createElement("span");
-    measurements.textContent = `${formatWeight(session.duration)} min · ${formatDistance(session.distance)} km`;
+    measurements.textContent = `${formatDuration(Math.round(session.duration * 60))} · ${formatDistance(session.distance)} km`;
     details.append(activity, date, measurements);
     const remove = document.createElement("button");
     remove.type = "button";
@@ -657,7 +657,7 @@ function openEditDialog(type, record) {
     appendEditField(fields, "Aktivitet", "activity", record.activity, "select", {
       choices: cardioActivities
     });
-    appendEditField(fields, "Tid (minutter)", "duration", record.duration, "number", { min: 1, max: 600, step: 0.1 });
+    appendEditField(fields, "Tid (sekunder)", "duration", Math.round(record.duration * 60), "number", { min: 1, max: 36000, step: 1 });
     appendEditField(fields, "Distanse (km)", "distance", record.distance, "number", { min: 0, max: 1000, step: 0.01 });
     appendEditField(fields, "Dato", "date", record.date, "date");
   } else {
@@ -837,7 +837,7 @@ function validateBackup(payload) {
   if (backup.cardioSessions.some((entry) => !entry || typeof entry.id !== "string" ||
       !isValidStoredDate(entry.date) ||
       !cardioActivities.includes(entry.activity) ||
-      !Number.isFinite(entry.duration) || entry.duration < 1 || entry.duration > 600 ||
+      !Number.isFinite(entry.duration) || entry.duration <= 0 || entry.duration > 600 ||
       !Number.isFinite(entry.distance) || entry.distance < 0 || entry.distance > 1000)) {
     throw new Error("Sikkerhetskopien inneholder en ugyldig kondisjonsøkt.");
   }
@@ -1160,6 +1160,14 @@ function formatDistance(value) {
   return new Intl.NumberFormat("no-NO", { maximumFractionDigits: 2 }).format(value);
 }
 
+function formatDuration(totalSeconds) {
+  const seconds = Math.round(totalSeconds);
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  if (!minutes) return `${remainder} sek`;
+  return remainder ? `${minutes} min ${remainder} sek` : `${minutes} min`;
+}
+
 function formatDate(date) {
   return new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short", year: "numeric" })
     .format(new Date(`${date}T12:00:00`));
@@ -1195,11 +1203,11 @@ document.querySelector("#weightHistory").addEventListener("click", handleHistory
 document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const activity = document.querySelector("#cardioActivity").value;
-  const duration = Number(document.querySelector("#cardioDuration").value);
+  const durationSeconds = Number(document.querySelector("#cardioDuration").value);
   const distance = Number(document.querySelector("#cardioDistance").value);
   const date = document.querySelector("#cardioDate").value;
   if (!cardioActivities.includes(activity) ||
-      !Number.isFinite(duration) || duration < 1 || duration > 600 ||
+      !Number.isInteger(durationSeconds) || durationSeconds < 1 || durationSeconds > 36000 ||
       !Number.isFinite(distance) || distance < 0 || distance > 1000 ||
       !date || date > localDate()) {
     showToast("Skriv inn gyldig aktivitet, tid, distanse og dato.");
@@ -1208,7 +1216,7 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   state.cardioSessions.push({
     id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
     activity,
-    duration,
+    duration: durationSeconds / 60,
     distance,
     date,
     createdAt: new Date().toISOString()
@@ -1269,17 +1277,17 @@ document.querySelector("#editForm").addEventListener("submit", (event) => {
     entry.value = value;
   } else if (editingRecord.type === "cardio") {
     const activity = String(values.get("activity") || "");
-    const duration = Number(values.get("duration"));
+    const durationSeconds = Number(values.get("duration"));
     const distance = Number(values.get("distance"));
     if (!cardioActivities.includes(activity) ||
-        !Number.isFinite(duration) || duration < 1 || duration > 600 ||
+        !Number.isInteger(durationSeconds) || durationSeconds < 1 || durationSeconds > 36000 ||
         !Number.isFinite(distance) || distance < 0 || distance > 1000) {
       error.textContent = "Kontroller aktivitet, tid og distanse.";
       return;
     }
     const session = state.cardioSessions.find((entry) => entry.id === editingRecord.id);
     if (!session) return;
-    Object.assign(session, { activity, duration, distance, date });
+    Object.assign(session, { activity, duration: durationSeconds / 60, distance, date });
   } else {
     const value = Number(values.get("value"));
     if (!Number.isFinite(value) || value < 0.5 || value > 1000) {
@@ -1630,7 +1638,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=13")
+    navigator.serviceWorker.register("./service-worker.js?v=14")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }
