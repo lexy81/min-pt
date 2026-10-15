@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=6">
+  <link rel="manifest" href="manifest.json?v=7">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=6">
-  <script src="app.js?v=6" defer></script>
+  <link rel="stylesheet" href="style.css?v=7">
+  <script src="app.js?v=7" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -95,9 +95,9 @@
               <option value="Fredag">Fredag</option>
             </select>
           </label>
-          <label class="visually-hidden" for="photoInput">Ta eller velg et bilde av deg selv</label>
-          <input class="visually-hidden" type="file" id="photoInput" accept="image/*" capture="user">
-          <button type="button" id="choosePhoto" class="photo-button">📷 Ta eller velg bilde</button>
+          <label class="photo-button">📷 Ta eller velg bilde
+            <input type="file" id="photoInput" accept="image/*" capture="user">
+          </label>
         </form>
         <p class="photo-privacy">Bildene blir ikke lastet opp eller delt.</p>
         <div id="photoGallery" class="photo-gallery" aria-live="polite"></div>

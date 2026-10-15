@@ -111,7 +111,10 @@ button:hover { background: #388e3c; }
 .photo-form { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 .photo-field { display: grid; gap: 6px; color: var(--muted); font-size: .8rem; font-weight: 700; }
 .photo-field input, .photo-field select { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); }
-.photo-button { grid-column: 1 / -1; min-height: 46px; font-size: .95rem; }
+.photo-button { position: relative; display: grid; grid-column: 1 / -1; min-height: 46px; place-items: center; padding: 10px 15px; border-radius: 6px; background: var(--green); color: white; font-size: .95rem; font-weight: 700; cursor: pointer; }
+.photo-button input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.photo-button:hover { background: #388e3c; }
+.photo-button:focus-within { outline: 2px solid var(--green-light); outline-offset: 2px; }
 .photo-privacy { margin: 10px 0 0; color: var(--muted); font-size: .78rem; }
 .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 15px; }
 .photo-entry { overflow: hidden; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised); }

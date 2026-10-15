@@ -1,12 +1,12 @@
-const CACHE_NAME = "min-pt-cache-v6";
+const CACHE_NAME = "min-pt-cache-v7";
 const APP_FILES = [
-  "./?v=6",
-  "./index.html?v=6",
-  "./style.css?v=6",
-  "./app.js?v=6",
-  "./manifest.json?v=6",
-  "./service-worker.js?v=6",
-  "./images/exercises.svg?v=6",
+  "./?v=7",
+  "./index.html?v=7",
+  "./style.css?v=7",
+  "./app.js?v=7",
+  "./manifest.json?v=7",
+  "./service-worker.js?v=7",
+  "./images/exercises.svg?v=7",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];
