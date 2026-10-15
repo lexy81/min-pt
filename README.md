@@ -16,6 +16,10 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 
 - Treningsprogram for mandag, onsdag og fredag med avkryssing av øvelser
 - Oppvarmings- og kondisjonslogg for tredemølle, sykling, gåtur og ellipsemaskin med tid, distanse og dato
+- Kondisjonsgraf med oppsummering for siste 7 eller 30 dager
+- Hvileklokke med valgbare pauser mellom sett
+- Rediger tidligere kroppsvekt-, kondisjons- og løftevektregistreringer
+- Eksporter og importer sikkerhetskopi med treningsbilder
 - Tydeligere, fargekodede treningsillustrasjoner med apparat, utøver og bevegelsesretning, pluss teknikkforklaring ved hver øvelse
 - Registrer løftevekt for hver styrkeøvelse, med forrige vekt som hint
 - Fremgangsgraf for løftevekt med valg av øvelse
@@ -25,4 +29,4 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 - Mørkt og lyst tema, med mørkt tema som standard
 - Lokal lagring og støtte for installasjon/frakoblet bruk
 
-Fremgangsbilder lagres i nettleserens lokale bildelager og komprimeres for å spare plass. De lastes ikke opp. Løftevekter lagres per øvelse og treningsdato, og forrige registrering vises som hjelp. Bruk «Slett alle data» i innstillingene for å slette bilder og treningsdata fra enheten.
+Fremgangsbilder lagres i nettleserens lokale bildelager og komprimeres for å spare plass. De lastes ikke opp. Sikkerhetskopien inneholder treningsdata og bilder i én JSON-fil; import erstatter dataene på enheten etter bekreftelse. Løftevekter lagres per øvelse og treningsdato, og forrige registrering vises som hjelp. Bruk «Slett alle data» i innstillingene for å slette bilder og treningsdata fra enheten.

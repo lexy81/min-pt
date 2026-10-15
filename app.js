@@ -39,6 +39,9 @@ let installPrompt = null;
 let toastTimer;
 let photoObjectUrls = [];
 let selectedStrengthExercise = "Brystpress";
+let restTimerInterval = null;
+let restTimerEnd = null;
+let editingRecord = null;
 
 function loadState() {
   try {
@@ -76,9 +79,11 @@ function saveState() {
     const latest = state.weights[state.weights.length - 1];
     if (latest) localStorage.setItem("weight", String(latest.value));
     localStorage.setItem("exercises", JSON.stringify(state.exercises));
+    return true;
   } catch (error) {
     console.error("Kunne ikke lagre treningsdata.", error);
     showToast("Dataene kunne ikke lagres. Kontroller lagringsplassen i nettleseren.");
+    return false;
   }
 }
 
@@ -104,7 +109,7 @@ function renderWorkouts() {
       const savedWeight = state.lifts[date]?.[workout.day]?.[exercise.name] ?? "";
       const previousWeight = getPreviousLiftWeight(workout.day, exercise.name, date);
       return `<li class="exercise">
-        <svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=8#${exercise.image}"></use></svg>
+        <svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=11#${exercise.image}"></use></svg>
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
         </div>
@@ -158,7 +163,17 @@ function renderWeights() {
   list.replaceChildren();
   [...history].reverse().slice(0, 8).forEach((entry) => {
     const item = document.createElement("li");
-    item.innerHTML = `<span>${formatDate(entry.date)}</span><strong>${formatWeight(entry.value)} kg</strong>`;
+    const date = document.createElement("span");
+    date.textContent = formatDate(entry.date);
+    const value = document.createElement("strong");
+    value.textContent = `${formatWeight(entry.value)} kg`;
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "history-edit";
+    edit.dataset.editType = "weight";
+    edit.dataset.editDate = entry.date;
+    edit.textContent = "Rediger";
+    item.append(date, value, edit);
     list.append(item);
   });
   const change = history.length > 1 ? latest.value - history[0].value : null;
@@ -166,6 +181,7 @@ function renderWeights() {
     ? "–" : `${change > 0 ? "+" : ""}${formatWeight(change)} kg`;
   renderChart(history);
   renderStrengthProgress();
+  renderCardioProgress();
 }
 
 function renderStrengthProgress() {
@@ -229,7 +245,17 @@ function renderStrengthProgress() {
     date.textContent = formatDate(entry.date);
     const weight = document.createElement("strong");
     weight.textContent = `${formatWeight(entry.weight)} kg`;
-    row.append(date, weight);
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "history-edit";
+    edit.dataset.editType = "lift";
+    edit.dataset.editDate = entry.date;
+    edit.dataset.editDay = workouts.find((workout) =>
+      Number.isFinite(state.lifts[entry.date]?.[workout.day]?.[selectedStrengthExercise])
+    )?.day || "";
+    edit.dataset.editExercise = selectedStrengthExercise;
+    edit.textContent = "Rediger";
+    row.append(date, weight, edit);
     historyList.append(row);
   });
 }
@@ -312,6 +338,7 @@ function renderChart(history) {
     container.append(empty);
     return;
   }
+
   const values = history.slice(-8);
   const min = Math.min(...values.map((entry) => entry.value));
   const max = Math.max(...values.map((entry) => entry.value));
@@ -335,6 +362,115 @@ function renderChart(history) {
     circle.setAttribute("r", "1.7");
     circle.setAttribute("class", "chart-point");
     svg.append(circle);
+  });
+  container.append(svg);
+}
+
+function renderCardioProgress() {
+  const days = Number(document.querySelector("#cardioPeriod").value);
+  const activity = document.querySelector("#cardioFilter").value;
+  const today = localDate();
+  const from = new Date(`${today}T12:00:00`);
+  from.setDate(from.getDate() - days + 1);
+  const startDate = localDate(from);
+  const sessions = state.cardioSessions.filter((session) =>
+    session.date >= startDate && session.date <= today &&
+    (activity === "Alle" || session.activity === activity)
+  );
+  const totalDuration = sessions.reduce((total, session) => total + session.duration, 0);
+  const totalDistance = sessions.reduce((total, session) => total + session.distance, 0);
+  document.querySelector("#cardioProgressCount").textContent = String(sessions.length);
+  document.querySelector("#cardioProgressDuration").textContent = `${formatWeight(totalDuration)} min`;
+  document.querySelector("#cardioProgressDistance").textContent = `${formatDistance(totalDistance)} km`;
+
+  const chart = document.querySelector("#cardioChart");
+  chart.replaceChildren();
+  chart.setAttribute("aria-label", `Kondisjonsdistanse siste ${days} dager${activity === "Alle" ? "" : ` for ${activity}`}`);
+  const summary = document.querySelector("#cardioChartSummary");
+  if (!sessions.length) {
+    summary.textContent = `Ingen økter i valgt periode${activity === "Alle" ? "." : ` for ${activity}.`}`;
+    const empty = document.createElement("p");
+    empty.className = "chart-empty";
+    empty.textContent = "Kondisjonsgrafen vises når du registrerer økter.";
+    chart.append(empty);
+    return;
+  }
+  summary.textContent = `${sessions.length} økter · ${formatWeight(totalDuration)} min · ${formatDistance(totalDistance)} km`;
+
+  const dailyDistance = new Map();
+  sessions.forEach((session) => {
+    dailyDistance.set(session.date, (dailyDistance.get(session.date) || 0) + session.distance);
+  });
+  const history = Array.from({ length: days }, (_, index) => {
+    const date = new Date(`${startDate}T12:00:00`);
+    date.setDate(date.getDate() + index);
+    const key = localDate(date);
+    return { date: key, distance: dailyDistance.get(key) || 0 };
+  });
+  drawCardioChart(chart, history, activity, days);
+}
+
+function drawCardioChart(container, history, activity, periodDays) {
+  const width = 520;
+  const height = 230;
+  const margin = { top: 20, right: 14, bottom: 42, left: 48 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const highest = Math.max(...history.map((entry) => entry.distance), 0);
+  const max = highest > 0 ? highest * 1.15 : 1;
+  const slotWidth = plotWidth / history.length;
+  const barWidth = Math.max(2, Math.min(26, slotWidth * 0.62));
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `${activity === "Alle" ? "Alle aktiviteter" : activity}: ${history.filter((entry) => entry.distance > 0).map((entry) => `${formatDate(entry.date)} ${formatDistance(entry.distance)} kilometer`).join(", ")}`);
+
+  for (let index = 0; index <= 4; index++) {
+    const y = margin.top + plotHeight * index / 4;
+    const value = max - max * index / 4;
+    const grid = document.createElementNS(svg.namespaceURI, "line");
+    grid.setAttribute("x1", margin.left);
+    grid.setAttribute("x2", width - margin.right);
+    grid.setAttribute("y1", y);
+    grid.setAttribute("y2", y);
+    grid.setAttribute("class", "strength-grid");
+    svg.append(grid);
+    const label = document.createElementNS(svg.namespaceURI, "text");
+    label.setAttribute("x", margin.left - 7);
+    label.setAttribute("y", y + 4);
+    label.setAttribute("text-anchor", "end");
+    label.setAttribute("class", "strength-axis-label");
+    label.textContent = formatDistance(value);
+    svg.append(label);
+  }
+
+  history.forEach((entry, index) => {
+    const x = margin.left + slotWidth * index + (slotWidth - barWidth) / 2;
+    const barHeight = entry.distance / max * plotHeight;
+    const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    bar.setAttribute("x", x);
+    bar.setAttribute("y", margin.top + plotHeight - barHeight);
+    bar.setAttribute("width", barWidth);
+    bar.setAttribute("height", Math.max(barHeight, entry.distance > 0 ? 1 : 0));
+    bar.setAttribute("rx", "2");
+    bar.setAttribute("class", "cardio-bar");
+    if (entry.distance > 0) {
+      const title = document.createElementNS(svg.namespaceURI, "title");
+      title.textContent = `${formatDate(entry.date)}: ${formatDistance(entry.distance)} km`;
+      bar.append(title);
+    }
+    svg.append(bar);
+
+    if (periodDays === 7 || index % 5 === 0 || index === periodDays - 1) {
+      const label = document.createElementNS(svg.namespaceURI, "text");
+      label.setAttribute("x", x + barWidth / 2);
+      label.setAttribute("y", height - 12);
+      label.setAttribute("text-anchor", "middle");
+      label.setAttribute("class", "strength-axis-label");
+      label.textContent = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" })
+        .format(new Date(`${entry.date}T12:00:00`));
+      svg.append(label);
+    }
   });
   container.append(svg);
 }
@@ -396,9 +532,89 @@ function renderCardioSessions() {
     remove.dataset.removeCardio = session.id;
     remove.setAttribute("aria-label", `Slett ${session.activity} ${formatDate(session.date)}`);
     remove.textContent = "Slett";
-    item.append(details, remove);
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "history-edit";
+    edit.dataset.editType = "cardio";
+    edit.dataset.editId = session.id;
+    edit.textContent = "Rediger";
+    const actions = document.createElement("div");
+    actions.className = "history-actions";
+    actions.append(edit, remove);
+    item.append(details, actions);
     history.append(item);
   });
+}
+
+function appendEditField(container, labelText, name, value, type, options = {}) {
+  const label = document.createElement("label");
+  label.className = "edit-field";
+  label.textContent = labelText;
+  let input;
+  if (options.choices) {
+    input = document.createElement("select");
+    options.choices.forEach((choice) => {
+      const option = document.createElement("option");
+      option.value = choice;
+      option.textContent = choice;
+      input.append(option);
+    });
+  } else {
+    input = document.createElement("input");
+    input.type = type;
+  }
+  input.name = name;
+  input.required = true;
+  input.value = String(value);
+  if (options.min !== undefined) input.min = String(options.min);
+  if (options.max !== undefined) input.max = String(options.max);
+  if (options.step !== undefined) input.step = String(options.step);
+  if (type === "date") input.max = localDate();
+  label.append(input);
+  container.append(label);
+}
+
+function openEditDialog(type, record) {
+  const fields = document.querySelector("#editFields");
+  fields.replaceChildren();
+  document.querySelector("#editError").textContent = "";
+  editingRecord = { type, ...record };
+  const title = document.querySelector("#editDialogTitle");
+  if (type === "weight") {
+    title.textContent = "Rediger kroppsvekt";
+    appendEditField(fields, "Vekt (kg)", "value", record.value, "number", { min: 1, max: 500, step: 0.1 });
+    appendEditField(fields, "Dato", "date", record.date, "date");
+  } else if (type === "cardio") {
+    title.textContent = "Rediger kondisjonsøkt";
+    appendEditField(fields, "Aktivitet", "activity", record.activity, "select", {
+      choices: ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"]
+    });
+    appendEditField(fields, "Tid (minutter)", "duration", record.duration, "number", { min: 1, max: 600, step: 0.1 });
+    appendEditField(fields, "Distanse (km)", "distance", record.distance, "number", { min: 0, max: 1000, step: 0.01 });
+    appendEditField(fields, "Dato", "date", record.date, "date");
+  } else {
+    title.textContent = `Rediger ${record.exercise}`;
+    appendEditField(fields, "Vekt (kg)", "value", record.value, "number", { min: 0.5, max: 1000, step: 0.5 });
+    appendEditField(fields, "Dato", "date", record.date, "date");
+  }
+  document.querySelector("#editDialog").showModal();
+}
+
+function handleHistoryEdit(event) {
+  const button = event.target.closest("[data-edit-type]");
+  if (!button) return;
+  const type = button.dataset.editType;
+  if (type === "weight") {
+    const entry = state.weights.find((weight) => weight.date === button.dataset.editDate);
+    if (entry) openEditDialog(type, entry);
+  } else if (type === "cardio") {
+    const entry = state.cardioSessions.find((session) => session.id === button.dataset.editId);
+    if (entry) openEditDialog(type, entry);
+  } else if (type === "lift") {
+    const { editDate: date, editDay: day, editExercise: exercise } = button.dataset;
+    const value = state.lifts[date]?.[day]?.[exercise];
+    if (Number.isFinite(value)) openEditDialog(type, { date, day, exercise, value });
+  }
 }
 
 function openPhotoDatabase() {
@@ -477,6 +693,198 @@ async function clearPhotos() {
   } finally {
     database.close();
   }
+}
+
+async function replacePhotos(photos) {
+  const database = await openPhotoDatabase();
+  try {
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction("photos", "readwrite");
+      const store = transaction.objectStore("photos");
+      store.clear();
+      photos.forEach((photo) => store.put(photo));
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error || new Error("Kunne ikke gjenopprette bildene."));
+      transaction.onabort = () => reject(transaction.error || new Error("Bildene kunne ikke gjenopprettes."));
+    });
+  } finally {
+    database.close();
+  }
+}
+
+function isValidStoredDate(date) {
+  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const parsed = new Date(`${date}T12:00:00`);
+  return Number.isFinite(parsed.getTime()) && localDate(parsed) === date && date <= localDate();
+}
+
+function validateBackup(payload) {
+  if (!payload || payload.format !== "min-pt-backup" || payload.version !== 1 ||
+      !payload.state || typeof payload.state !== "object" || !Array.isArray(payload.photos)) {
+    throw new Error("Filen er ikke en gyldig Min PT-sikkerhetskopi.");
+  }
+  const backup = payload.state;
+  const dayNames = workouts.map((workout) => workout.day);
+  if (!Array.isArray(backup.weights) || !Array.isArray(backup.exercises) ||
+      !backup.lifts || typeof backup.lifts !== "object" || Array.isArray(backup.lifts) ||
+      !backup.completed || typeof backup.completed !== "object" || Array.isArray(backup.completed) ||
+      !Array.isArray(backup.cardioSessions) ||
+      !["dark", "light"].includes(backup.theme)) {
+    throw new Error("Sikkerhetskopien mangler gyldige treningsdata.");
+  }
+  if (backup.weights.some((entry) => !entry || !isValidStoredDate(entry.date) ||
+      !Number.isFinite(entry.value) || entry.value < 1 || entry.value > 500)) {
+    throw new Error("Sikkerhetskopien inneholder en ugyldig kroppsvektmåling.");
+  }
+  if (backup.exercises.some((exercise) => typeof exercise !== "string" || !exercise.trim() || exercise.length > 60)) {
+    throw new Error("Sikkerhetskopien inneholder en ugyldig egen øvelse.");
+  }
+  Object.entries(backup.lifts).forEach(([date, days]) => {
+    if (!isValidStoredDate(date) || !days || typeof days !== "object" || Array.isArray(days)) {
+      throw new Error("Sikkerhetskopien inneholder en ugyldig styrkeregistrering.");
+    }
+    Object.entries(days).forEach(([day, entries]) => {
+      const workout = workouts.find((item) => item.day === day);
+      if (!workout || !entries || typeof entries !== "object" || Array.isArray(entries)) {
+        throw new Error("Sikkerhetskopien inneholder en ukjent treningsdag.");
+      }
+      Object.entries(entries).forEach(([exercise, value]) => {
+        if (!workout.exercises.some((item) => item.name === exercise && !item.timed) ||
+            !Number.isFinite(value) || value < 0.5 || value > 1000) {
+          throw new Error("Sikkerhetskopien inneholder en ugyldig løftevekt.");
+        }
+      });
+    });
+  });
+  Object.entries(backup.completed).forEach(([date, entries]) => {
+    if (!isValidStoredDate(date) || !Array.isArray(entries) ||
+        entries.some((key) => !dayNames.some((day) => {
+          const workout = workouts.find((item) => item.day === day);
+          return workout.exercises.some((_, index) => key === `${day}-${index}`);
+        }))) {
+      throw new Error("Sikkerhetskopien inneholder en ugyldig øktregistrering.");
+    }
+  });
+  if (backup.cardioSessions.some((entry) => !entry || typeof entry.id !== "string" ||
+      !isValidStoredDate(entry.date) ||
+      !["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(entry.activity) ||
+      !Number.isFinite(entry.duration) || entry.duration < 1 || entry.duration > 600 ||
+      !Number.isFinite(entry.distance) || entry.distance < 0 || entry.distance > 1000)) {
+    throw new Error("Sikkerhetskopien inneholder en ugyldig kondisjonsøkt.");
+  }
+
+  const photos = payload.photos.map((photo) => {
+    if (!photo || typeof photo.id !== "string" || !isValidStoredDate(photo.date) ||
+        !["Egen fremgang", ...dayNames].includes(photo.workout) ||
+        typeof photo.createdAt !== "string" || !Number.isFinite(Date.parse(photo.createdAt)) ||
+        typeof photo.data !== "string" || photo.data.length > 18 * 1024 * 1024) {
+      throw new Error("Sikkerhetskopien inneholder et ugyldig bilde.");
+    }
+    const match = photo.data.match(/^data:(image\/[a-z0-9.+-]+);base64,([a-z0-9+/]*={0,2})$/i);
+    if (!match) throw new Error("Sikkerhetskopien inneholder et bilde i et ugyldig format.");
+    const binary = atob(match[2]);
+    if (binary.length > 12 * 1024 * 1024) throw new Error("Et bilde i sikkerhetskopien er større enn 12 MB.");
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+    return {
+      id: photo.id,
+      date: photo.date,
+      workout: photo.workout,
+      createdAt: photo.createdAt,
+      blob: new Blob([bytes], { type: match[1] })
+    };
+  });
+  const ids = new Set(photos.map((photo) => photo.id));
+  if (ids.size !== photos.length) throw new Error("Sikkerhetskopien inneholder dupliserte bilder.");
+
+  return {
+    state: {
+      weights: backup.weights,
+      exercises: backup.exercises,
+      lifts: backup.lifts,
+      completed: backup.completed,
+      cardioSessions: backup.cardioSessions,
+      theme: backup.theme
+    },
+    photos
+  };
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("Kunne ikke lese et bilde til sikkerhetskopien."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function exportBackup() {
+  const photos = await getPhotos();
+  const serializedPhotos = await Promise.all(photos.map(async (photo) => ({
+    id: photo.id,
+    date: photo.date,
+    workout: photo.workout,
+    createdAt: photo.createdAt,
+    data: await blobToDataUrl(photo.blob)
+  })));
+  const payload = {
+    format: "min-pt-backup",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    state,
+    photos: serializedPhotos
+  };
+  const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+  if (blob.size > 150 * 1024 * 1024) {
+    throw new Error("Sikkerhetskopien er større enn 150 MB. Fjern noen store bilder og prøv igjen.");
+  }
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `min-pt-sikkerhetskopi-${localDate()}.json`;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function importBackup(file) {
+  if (file.size > 150 * 1024 * 1024) {
+    throw new Error("Sikkerhetskopien er større enn 150 MB.");
+  }
+  const payload = JSON.parse(await file.text());
+  const imported = validateBackup(payload);
+  if (!window.confirm(`Erstatte dataene på denne enheten med sikkerhetskopien? Den inneholder ${imported.state.weights.length} vektmålinger, ${imported.state.cardioSessions.length} kondisjonsøkter og ${imported.photos.length} bilder. Eksisterende data blir erstattet.`)) {
+    return false;
+  }
+
+  const storageKeys = [STORAGE_KEY, "weight", "exercises"];
+  const previousStorage = storageKeys.map((key) => localStorage.getItem(key));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(imported.state));
+    if (imported.state.weights.length) {
+      localStorage.setItem("weight", String(imported.state.weights[imported.state.weights.length - 1].value));
+    } else {
+      localStorage.removeItem("weight");
+    }
+    localStorage.setItem("exercises", JSON.stringify(imported.state.exercises));
+    await replacePhotos(imported.photos);
+  } catch (error) {
+    try {
+      storageKeys.forEach((key, index) => {
+        if (previousStorage[index] === null) localStorage.removeItem(key);
+        else localStorage.setItem(key, previousStorage[index]);
+      });
+    } catch (restoreError) {
+      console.error("Kunne ikke gjenopprette lokale data etter avbrutt import.", restoreError);
+      throw new Error("Importen ble avbrutt, og lokal lagring kunne ikke gjenopprettes. Kontroller dataene før du lukker appen.");
+    }
+    throw error;
+  }
+  state = imported.state;
+  render();
+  await renderPhotos();
+  showToast("Sikkerhetskopien er importert.");
+  return true;
 }
 
 async function preparePhoto(file) {
@@ -598,6 +1006,8 @@ document.querySelector("#weightForm").addEventListener("submit", (event) => {
   showToast("Vektmålingen er lagret.");
 });
 
+document.querySelector("#weightHistory").addEventListener("click", handleHistoryEdit);
+
 document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const activity = document.querySelector("#cardioActivity").value;
@@ -621,6 +1031,7 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   });
   saveState();
   renderCardioSessions();
+  renderCardioProgress();
   document.querySelector("#cardioDuration").value = "";
   document.querySelector("#cardioDistance").value = "";
   document.querySelector("#cardioDate").value = localDate();
@@ -628,12 +1039,168 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
 });
 
 document.querySelector("#cardioHistory").addEventListener("click", (event) => {
+  const edit = event.target.closest("[data-edit-type]");
+  if (edit) {
+    handleHistoryEdit(event);
+    return;
+  }
   const button = event.target.closest("[data-remove-cardio]");
   if (!button) return;
   state.cardioSessions = state.cardioSessions.filter((session) => session.id !== button.dataset.removeCardio);
   saveState();
   renderCardioSessions();
+  renderCardioProgress();
   showToast("Kondisjonsøkten er slettet.");
+});
+
+document.querySelector("#cardioPeriod").addEventListener("change", renderCardioProgress);
+document.querySelector("#cardioFilter").addEventListener("change", renderCardioProgress);
+document.querySelector("#strengthHistory").addEventListener("click", handleHistoryEdit);
+
+document.querySelector("#editForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!editingRecord) return;
+  const values = new FormData(event.currentTarget);
+  const date = String(values.get("date") || "");
+  const error = document.querySelector("#editError");
+  if (!isValidStoredDate(date)) {
+    error.textContent = "Velg en gyldig dato som ikke er i fremtiden.";
+    return;
+  }
+
+  if (editingRecord.type === "weight") {
+    const value = Number(values.get("value"));
+    if (!Number.isFinite(value) || value < 1 || value > 500) {
+      error.textContent = "Vekten må være mellom 1 og 500 kg.";
+      return;
+    }
+    const conflict = state.weights.some((entry) => entry.date === date && entry.date !== editingRecord.date);
+    if (conflict) {
+      error.textContent = "Det finnes allerede en vektmåling på denne datoen.";
+      return;
+    }
+    const entry = state.weights.find((weight) => weight.date === editingRecord.date);
+    if (!entry) return;
+    entry.date = date;
+    entry.value = value;
+  } else if (editingRecord.type === "cardio") {
+    const activity = String(values.get("activity") || "");
+    const duration = Number(values.get("duration"));
+    const distance = Number(values.get("distance"));
+    if (!["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(activity) ||
+        !Number.isFinite(duration) || duration < 1 || duration > 600 ||
+        !Number.isFinite(distance) || distance < 0 || distance > 1000) {
+      error.textContent = "Kontroller aktivitet, tid og distanse.";
+      return;
+    }
+    const session = state.cardioSessions.find((entry) => entry.id === editingRecord.id);
+    if (!session) return;
+    Object.assign(session, { activity, duration, distance, date });
+  } else {
+    const value = Number(values.get("value"));
+    if (!Number.isFinite(value) || value < 0.5 || value > 1000) {
+      error.textContent = "Vekten må være mellom 0,5 og 1000 kg.";
+      return;
+    }
+    const oldEntries = state.lifts[editingRecord.date]?.[editingRecord.day];
+    if (!oldEntries || !Number.isFinite(oldEntries[editingRecord.exercise])) return;
+    if (state.lifts[date]?.[editingRecord.day]?.[editingRecord.exercise] !== undefined &&
+        date !== editingRecord.date) {
+      error.textContent = "Det finnes allerede en vekt for denne øvelsen på valgt dato.";
+      return;
+    }
+    delete oldEntries[editingRecord.exercise];
+    if (Object.keys(oldEntries).length === 0) delete state.lifts[editingRecord.date][editingRecord.day];
+    if (Object.keys(state.lifts[editingRecord.date]).length === 0) delete state.lifts[editingRecord.date];
+    if (!state.lifts[date]) state.lifts[date] = {};
+    if (!state.lifts[date][editingRecord.day]) state.lifts[date][editingRecord.day] = {};
+    state.lifts[date][editingRecord.day][editingRecord.exercise] = value;
+  }
+  saveState();
+  document.querySelector("#editDialog").close();
+  editingRecord = null;
+  render();
+  showToast("Registreringen er oppdatert.");
+});
+
+function closeEditDialog() {
+  document.querySelector("#editDialog").close();
+  editingRecord = null;
+}
+
+document.querySelector("#cancelEdit").addEventListener("click", closeEditDialog);
+document.querySelector("#closeEditDialog").addEventListener("click", closeEditDialog);
+document.querySelector("#editDialog").addEventListener("click", (event) => {
+  if (event.target === event.currentTarget) closeEditDialog();
+});
+
+function updateRestTimer() {
+  const remaining = Math.max(0, Math.ceil((restTimerEnd - Date.now()) / 1000));
+  const minutes = String(Math.floor(remaining / 60)).padStart(2, "0");
+  const seconds = String(remaining % 60).padStart(2, "0");
+  document.querySelector("#restTimerDisplay").textContent = `${minutes}:${seconds}`;
+  if (remaining === 0) {
+    clearInterval(restTimerInterval);
+    restTimerInterval = null;
+    restTimerEnd = null;
+    document.querySelector("#startRestTimer").disabled = false;
+    document.querySelector("#stopRestTimer").disabled = true;
+    document.querySelector("#restDuration").disabled = false;
+    showToast("Hvilepausen er ferdig. Klar for neste sett!");
+    if ("vibrate" in navigator) navigator.vibrate(250);
+  }
+}
+
+document.querySelector("#restTimerForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  clearInterval(restTimerInterval);
+  restTimerEnd = Date.now() + Number(document.querySelector("#restDuration").value) * 1000;
+  document.querySelector("#startRestTimer").disabled = true;
+  document.querySelector("#stopRestTimer").disabled = false;
+  document.querySelector("#restDuration").disabled = true;
+  updateRestTimer();
+  restTimerInterval = window.setInterval(updateRestTimer, 250);
+});
+
+document.querySelector("#stopRestTimer").addEventListener("click", () => {
+  clearInterval(restTimerInterval);
+  restTimerInterval = null;
+  restTimerEnd = null;
+  document.querySelector("#restTimerDisplay").textContent =
+    `${String(Math.floor(Number(document.querySelector("#restDuration").value) / 60)).padStart(2, "0")}:${String(Number(document.querySelector("#restDuration").value) % 60).padStart(2, "0")}`;
+  document.querySelector("#startRestTimer").disabled = false;
+  document.querySelector("#stopRestTimer").disabled = true;
+  document.querySelector("#restDuration").disabled = false;
+});
+
+document.querySelector("#restDuration").addEventListener("change", (event) => {
+  const duration = Number(event.currentTarget.value);
+  document.querySelector("#restTimerDisplay").textContent =
+    `${String(Math.floor(duration / 60)).padStart(2, "0")}:${String(duration % 60).padStart(2, "0")}`;
+});
+
+document.querySelector("#exportBackup").addEventListener("click", async () => {
+  try {
+    await exportBackup();
+    showToast("Sikkerhetskopien er lastet ned.");
+  } catch (error) {
+    console.error("Kunne ikke eksportere sikkerhetskopien.", error);
+    showToast(error.message || "Sikkerhetskopien kunne ikke opprettes.");
+  }
+});
+
+document.querySelector("#importBackup").addEventListener("change", async (event) => {
+  const input = event.currentTarget;
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    await importBackup(file);
+  } catch (error) {
+    console.error("Kunne ikke importere sikkerhetskopien.", error);
+    showToast(error.message || "Sikkerhetskopien kunne ikke importeres.");
+  } finally {
+    input.value = "";
+  }
 });
 
 document.querySelector("#strengthExercise").addEventListener("change", (event) => {
@@ -791,7 +1358,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=10")
+    navigator.serviceWorker.register("./service-worker.js?v=11")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }

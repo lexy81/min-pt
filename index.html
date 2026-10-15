@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=10">
+  <link rel="manifest" href="manifest.json?v=11">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=10">
-  <script src="app.js?v=10" defer></script>
+  <link rel="stylesheet" href="style.css?v=11">
+  <script src="app.js?v=11" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -33,6 +33,22 @@
 
     <section id="trening" class="page-section">
       <div class="section-heading"><div><p class="eyebrow">STYRKEPROGRAM</p><h2>Treningsplan</h2></div></div>
+      <section class="card rest-timer">
+        <div><h3>Hvile mellom sett</h3><p class="subtle">Ta en pause før neste sett.</p></div>
+        <form id="restTimerForm" class="rest-timer-controls">
+          <label for="restDuration">Pauselengde</label>
+          <select id="restDuration">
+            <option value="30">30 sek</option>
+            <option value="60">60 sek</option>
+            <option value="90" selected>90 sek</option>
+            <option value="120">2 min</option>
+            <option value="180">3 min</option>
+          </select>
+          <button type="submit" id="startRestTimer">Start pause</button>
+          <button type="button" id="stopRestTimer" class="button-secondary" disabled>Stopp</button>
+          <output id="restTimerDisplay" class="rest-timer-display" aria-live="polite">01:30</output>
+        </form>
+      </section>
       <section class="card cardio-card">
         <h3>Oppvarming og kondisjon</h3>
         <p class="subtle">Registrer tid og distanse på tredemølle, sykkel, gåtur eller ellipsemaskin.</p>
@@ -79,6 +95,30 @@
         <h3 class="history-heading">Vektutvikling</h3>
         <div id="weightChart" class="weight-chart" role="img" aria-label="Graf over vektmålinger"></div>
         <ul id="weightHistory" class="weight-history"></ul>
+        <div class="cardio-progress">
+          <div class="strength-heading"><div><h3>Kondisjonsutvikling</h3><p class="subtle">Se tid og distanse de siste dagene.</p></div></div>
+          <div class="cardio-progress-filters">
+            <label class="strength-picker" for="cardioPeriod">Periode
+              <select id="cardioPeriod"><option value="7">Siste 7 dager</option><option value="30">Siste 30 dager</option></select>
+            </label>
+            <label class="strength-picker" for="cardioFilter">Aktivitet
+              <select id="cardioFilter">
+                <option value="Alle">Alle aktiviteter</option>
+                <option value="Tredemølle">Tredemølle</option>
+                <option value="Sykling">Sykling</option>
+                <option value="Gåtur">Gåtur</option>
+                <option value="Ellipsemaskin">Ellipsemaskin</option>
+              </select>
+            </label>
+          </div>
+          <div class="cardio-summary">
+            <div><span class="stat-label">Økter</span><strong id="cardioProgressCount">0</strong></div>
+            <div><span class="stat-label">Tid</span><strong id="cardioProgressDuration">0 min</strong></div>
+            <div><span class="stat-label">Distanse</span><strong id="cardioProgressDistance">0 km</strong></div>
+          </div>
+          <p id="cardioChartSummary" class="strength-summary"></p>
+          <div id="cardioChart" class="strength-chart cardio-chart" role="img" aria-label="Graf over kondisjonsdistanse"></div>
+        </div>
         <div class="strength-progress">
           <div class="strength-heading"><div><h3>Styrkeutvikling</h3><p class="subtle">Se hvordan løftevekten din endrer seg fra økt til økt.</p></div></div>
           <label class="strength-picker" for="strengthExercise">Velg øvelse
@@ -135,11 +175,27 @@
       <section class="card settings-card">
         <label class="theme-setting" for="themeToggle"><span><strong>Mørkt tema</strong><small>Skånsomt for øynene når du trener.</small></span><input type="checkbox" id="themeToggle" checked><span class="switch" aria-hidden="true"></span></label>
         <div class="settings-row"><span><strong>Dataene dine</strong><small>Treningsdata og bilder lagres lokalt på denne enheten.</small></span><button type="button" class="button-secondary" id="clearData">Slett alle data</button></div>
+        <div class="backup-tools">
+          <div><strong>Sikkerhetskopi</strong><small>Ta med treningsdata og bilder til en annen telefon.</small></div>
+          <button type="button" id="exportBackup">Last ned sikkerhetskopi</button>
+          <label class="backup-import-button">Importer sikkerhetskopi
+            <input type="file" id="importBackup" accept="application/json,.json">
+          </label>
+          <small class="backup-warning">Import erstatter dataene som allerede er på denne enheten.</small>
+        </div>
         <button type="button" id="installButton" class="install-button" hidden>Installer Min PT</button>
       </section>
     </section>
   </main>
   <footer>Min PT <span aria-hidden="true">·</span> Én økt om gangen</footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="editDialog" class="edit-dialog">
+    <form id="editForm">
+      <div class="edit-dialog-heading"><h2 id="editDialogTitle">Rediger registrering</h2><button type="button" id="closeEditDialog" class="button-secondary" aria-label="Lukk">Lukk</button></div>
+      <div id="editFields" class="edit-fields"></div>
+      <p id="editError" class="edit-error" role="status"></p>
+      <div class="edit-dialog-actions"><button type="button" id="cancelEdit">Avbryt</button><button type="submit">Lagre endringer</button></div>
+    </form>
+  </dialog>
 </body>
 </html>
