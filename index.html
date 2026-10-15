@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=8">
+  <link rel="manifest" href="manifest.json?v=9">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=8">
-  <script src="app.js?v=8" defer></script>
+  <link rel="stylesheet" href="style.css?v=9">
+  <script src="app.js?v=9" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -33,6 +33,32 @@
 
     <section id="trening" class="page-section">
       <div class="section-heading"><div><p class="eyebrow">STYRKEPROGRAM</p><h2>Treningsplan</h2></div></div>
+      <section class="card cardio-card">
+        <h3>Oppvarming og kondisjon</h3>
+        <p class="subtle">Registrer tid og distanse på tredemølle, sykkel, gåtur eller ellipsemaskin.</p>
+        <form id="cardioForm" class="cardio-form">
+          <label class="cardio-field">Aktivitet
+            <select id="cardioActivity" required>
+              <option value="Tredemølle">Tredemølle</option>
+              <option value="Sykling">Sykling</option>
+              <option value="Gåtur">Gåtur</option>
+              <option value="Ellipsemaskin">Ellipsemaskin</option>
+            </select>
+          </label>
+          <label class="cardio-field">Tid (minutter)
+            <input type="number" id="cardioDuration" min="1" max="600" step="0.1" inputmode="decimal" placeholder="f.eks. 10" required>
+          </label>
+          <label class="cardio-field">Distanse (km)
+            <input type="number" id="cardioDistance" min="0" max="1000" step="0.01" inputmode="decimal" placeholder="f.eks. 1,5" required>
+          </label>
+          <label class="cardio-field">Dato
+            <input type="date" id="cardioDate" required>
+          </label>
+          <button type="submit" class="cardio-submit">Lagre kondisjonsøkt</button>
+        </form>
+        <h4 class="cardio-history-heading">Tidligere økter</h4>
+        <ul id="cardioHistory" class="cardio-history" aria-live="polite"></ul>
+      </section>
       <div id="workoutPlan" class="workout-plan"></div>
       <section class="card custom-card">
         <h2>Egne øvelser</h2>

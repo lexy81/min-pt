@@ -15,6 +15,7 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 ## Funksjoner
 
 - Treningsprogram for mandag, onsdag og fredag med avkryssing av øvelser
+- Oppvarmings- og kondisjonslogg for tredemølle, sykling, gåtur og ellipsemaskin med tid, distanse og dato
 - Tydeligere, fargekodede treningsillustrasjoner med apparat, utøver og bevegelsesretning, pluss teknikkforklaring ved hver øvelse
 - Registrer løftevekt for hver styrkeøvelse, med forrige vekt som hint
 - Fremgangsgraf for løftevekt med valg av øvelse

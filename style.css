@@ -71,6 +71,22 @@ h3 { margin: 0 0 5px; font-size: 1rem; }
 .exercise-check input:focus-visible + .checkmark { outline: 2px solid white; outline-offset: 2px; }
 .custom-card { margin-top: 13px; }
 .subtle { margin-bottom: 13px; }
+.cardio-card { margin-bottom: 13px; }
+.cardio-card > h3 { margin-bottom: 4px; }
+.cardio-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.cardio-field { display: grid; gap: 5px; color: var(--muted); font-size: .8rem; font-weight: 700; }
+.cardio-field input, .cardio-field select { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.cardio-submit { grid-column: 1 / -1; min-height: 44px; }
+.cardio-history-heading { margin: 18px 0 4px; }
+.cardio-history { margin: 0; padding: 0; list-style: none; }
+.cardio-entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.cardio-entry:last-child { border-bottom: 0; }
+.cardio-entry-details { display: grid; gap: 2px; font-size: .83rem; }
+.cardio-entry-details strong { color: var(--text); }
+.cardio-entry-details time, .cardio-entry-details > span, .cardio-empty { color: var(--muted); }
+.remove-cardio { flex: 0 0 auto; padding: 6px 9px; background: transparent; color: #ffb4a9; font-size: .8rem; }
+.remove-cardio:hover { background: #452523; }
+.cardio-empty { padding: 8px 0; font-size: .85rem; }
 .inline-form { display: flex; gap: 9px; align-items: stretch; }
 input { min-width: 0; min-height: 43px; padding: 10px 12px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); }
 input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--green-light); outline-offset: 2px; }
@@ -158,6 +174,7 @@ footer span { color: var(--green-light); }
 [data-theme="light"] .chart-empty { color: var(--muted); }
 [data-theme="light"] .remove-exercise { color: var(--muted); }
 [data-theme="light"] .photo-field input, [data-theme="light"] .photo-field select { border-color: var(--border); background: #fff; }
+[data-theme="light"] .cardio-field input, [data-theme="light"] .cardio-field select { border-color: var(--border); background: #fff; }
 [data-theme="light"] .exercise-art { background: #e8f1e6; }
 @media (max-width: 560px) {
   body { padding: 17px 14px 32px; }
@@ -174,6 +191,8 @@ footer span { color: var(--green-light); }
   .inline-form button { width: 100%; }
   .photo-form { grid-template-columns: 1fr; }
   .photo-button { grid-column: auto; }
+  .cardio-form { grid-template-columns: 1fr; }
+  .cardio-submit { grid-column: auto; }
   .settings-row { align-items: flex-start; padding: 10px 0; }
   .exercise { gap: 9px; padding: 9px; }
   .exercise-art { width: 74px; height: 68px; flex-basis: 74px; }

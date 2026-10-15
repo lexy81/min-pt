@@ -9,7 +9,6 @@ const workouts = [
       { name: "Skulderpress", detail: "3 sett × 10–12 repetisjoner", image: "shoulder-press", guide: "Sitt med ryggen støttet. Press håndtakene opp over hodet uten å låse albuene." },
       { name: "Pec Deck", detail: "3 sett × 12 repetisjoner", image: "pec-deck", guide: "Hold en lett bøy i albuene. Før armene sammen foran brystet, og åpne rolig igjen." },
       { name: "Triceps Pushdown", detail: "3 sett × 12 repetisjoner", image: "triceps-pushdown", guide: "Hold albuene tett inntil kroppen. Press håndtaket ned til armene er nesten strake." },
-      { name: "Tredemølle", detail: "15 minutter rask gange", image: "treadmill", guide: "Gå i et tempo der du blir varm, men fortsatt kan snakke. Hold deg i midten av båndet.", timed: true }
     ]
   },
   {
@@ -57,11 +56,17 @@ function loadState() {
         : Array.isArray(legacyExercises) ? legacyExercises.filter((item) => typeof item === "string") : [],
       lifts: saved.lifts && typeof saved.lifts === "object" ? saved.lifts : {},
       completed: saved.completed && typeof saved.completed === "object" ? saved.completed : {},
+      cardioSessions: Array.isArray(saved.cardioSessions) ? saved.cardioSessions.filter((entry) =>
+        entry && typeof entry.id === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date) &&
+        ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(entry.activity) &&
+        Number.isFinite(entry.duration) && entry.duration >= 1 && entry.duration <= 600 &&
+        Number.isFinite(entry.distance) && entry.distance >= 0 && entry.distance <= 1000
+      ) : [],
       theme: saved.theme === "light" ? "light" : "dark"
     };
   } catch (error) {
     console.error("Kunne ikke lese lagrede treningsdata.", error);
-    return { weights: [], exercises: [], completed: {}, theme: "dark" };
+    return { weights: [], exercises: [], completed: {}, cardioSessions: [], theme: "dark" };
   }
 }
 
@@ -350,11 +355,50 @@ function renderStats() {
 
 function render() {
   renderWorkouts();
+  renderCardioSessions();
   renderExercises();
   renderWeights();
   renderStats();
   document.documentElement.dataset.theme = state.theme;
   document.querySelector("#themeToggle").checked = state.theme === "dark";
+}
+
+function renderCardioSessions() {
+  const history = document.querySelector("#cardioHistory");
+  history.replaceChildren();
+  const sessions = [...state.cardioSessions].sort((first, second) =>
+    second.date.localeCompare(first.date) ||
+    (second.createdAt || "").localeCompare(first.createdAt || "")
+  );
+  if (sessions.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "cardio-empty";
+    empty.textContent = "Ingen kondisjonsøkter registrert ennå.";
+    history.append(empty);
+    return;
+  }
+  sessions.forEach((session) => {
+    const item = document.createElement("li");
+    item.className = "cardio-entry";
+    const details = document.createElement("div");
+    details.className = "cardio-entry-details";
+    const activity = document.createElement("strong");
+    activity.textContent = session.activity;
+    const date = document.createElement("time");
+    date.dateTime = session.date;
+    date.textContent = formatDate(session.date);
+    const measurements = document.createElement("span");
+    measurements.textContent = `${formatWeight(session.duration)} min · ${formatWeight(session.distance)} km`;
+    details.append(activity, date, measurements);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove-cardio";
+    remove.dataset.removeCardio = session.id;
+    remove.setAttribute("aria-label", `Slett ${session.activity} ${formatDate(session.date)}`);
+    remove.textContent = "Slett";
+    item.append(details, remove);
+    history.append(item);
+  });
 }
 
 function openPhotoDatabase() {
@@ -550,6 +594,44 @@ document.querySelector("#weightForm").addEventListener("submit", (event) => {
   showToast("Vektmålingen er lagret.");
 });
 
+document.querySelector("#cardioForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const activity = document.querySelector("#cardioActivity").value;
+  const duration = Number(document.querySelector("#cardioDuration").value);
+  const distance = Number(document.querySelector("#cardioDistance").value);
+  const date = document.querySelector("#cardioDate").value;
+  if (!["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(activity) ||
+      !Number.isFinite(duration) || duration < 1 || duration > 600 ||
+      !Number.isFinite(distance) || distance < 0 || distance > 1000 ||
+      !date || date > localDate()) {
+    showToast("Skriv inn gyldig aktivitet, tid, distanse og dato.");
+    return;
+  }
+  state.cardioSessions.push({
+    id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+    activity,
+    duration,
+    distance,
+    date,
+    createdAt: new Date().toISOString()
+  });
+  saveState();
+  renderCardioSessions();
+  document.querySelector("#cardioDuration").value = "";
+  document.querySelector("#cardioDistance").value = "";
+  document.querySelector("#cardioDate").value = localDate();
+  showToast("Kondisjonsøkten er lagret.");
+});
+
+document.querySelector("#cardioHistory").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-remove-cardio]");
+  if (!button) return;
+  state.cardioSessions = state.cardioSessions.filter((session) => session.id !== button.dataset.removeCardio);
+  saveState();
+  renderCardioSessions();
+  showToast("Kondisjonsøkten er slettet.");
+});
+
 document.querySelector("#strengthExercise").addEventListener("change", (event) => {
   selectedStrengthExercise = event.currentTarget.value;
   renderStrengthProgress();
@@ -616,7 +698,7 @@ document.querySelector("#themeToggle").addEventListener("change", (event) => {
 });
 
 document.querySelector("#clearData").addEventListener("click", async () => {
-  if (!window.confirm("Slette alle lagrede vektmålinger, økter, egne øvelser og bilder?")) return;
+  if (!window.confirm("Slette alle lagrede vektmålinger, kondisjonsøkter, treningsøkter, egne øvelser og bilder?")) return;
   try {
     await clearPhotos();
   } catch (error) {
@@ -628,6 +710,7 @@ document.querySelector("#clearData").addEventListener("click", async () => {
   state.lifts = {};
   state.exercises = [];
   state.completed = {};
+  state.cardioSessions = [];
   localStorage.removeItem("weight");
   localStorage.removeItem("exercises");
   saveState();
@@ -640,6 +723,8 @@ document.querySelector("#clearData").addEventListener("click", async () => {
 
 document.querySelector("#photoDate").value = localDate();
 document.querySelector("#photoDate").max = localDate();
+document.querySelector("#cardioDate").value = localDate();
+document.querySelector("#cardioDate").max = localDate();
 document.querySelector("#photoInput").addEventListener("change", async (event) => {
   const input = event.currentTarget;
   const file = input.files?.[0];
