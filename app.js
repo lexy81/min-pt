@@ -388,7 +388,7 @@ function renderCardioSessions() {
     date.dateTime = session.date;
     date.textContent = formatDate(session.date);
     const measurements = document.createElement("span");
-    measurements.textContent = `${formatWeight(session.duration)} min · ${formatWeight(session.distance)} km`;
+    measurements.textContent = `${formatWeight(session.duration)} min · ${formatDistance(session.distance)} km`;
     details.append(activity, date, measurements);
     const remove = document.createElement("button");
     remove.type = "button";
@@ -562,6 +562,10 @@ async function renderPhotos() {
 
 function formatWeight(value) {
   return new Intl.NumberFormat("no-NO", { maximumFractionDigits: 1 }).format(value);
+}
+
+function formatDistance(value) {
+  return new Intl.NumberFormat("no-NO", { maximumFractionDigits: 2 }).format(value);
 }
 
 function formatDate(date) {
@@ -787,7 +791,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=8")
+    navigator.serviceWorker.register("./service-worker.js?v=10")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }
