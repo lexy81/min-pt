@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=11">
+  <link rel="manifest" href="manifest.json?v=12">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=11">
-  <script src="app.js?v=11" defer></script>
+  <link rel="stylesheet" href="style.css?v=12">
+  <script src="app.js?v=12" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -76,9 +76,29 @@
         <ul id="cardioHistory" class="cardio-history" aria-live="polite"></ul>
       </section>
       <div id="workoutPlan" class="workout-plan"></div>
+      <section class="card plan-editor-card">
+        <h2>Tilpass treningsplanen</h2>
+        <p class="subtle">Legg en øvelse til på valgt dag, eller trykk «Fjern» ved en øvelse du ikke vil ha med.</p>
+        <form id="planExerciseForm" class="plan-exercise-form">
+          <label class="plan-exercise-field">Treningsdag
+            <select id="planExerciseDay" required>
+              <option value="Mandag">Mandag</option>
+              <option value="Onsdag">Onsdag</option>
+              <option value="Fredag">Fredag</option>
+            </select>
+          </label>
+          <label class="plan-exercise-field">Øvelsesnavn
+            <input type="text" id="planExerciseName" maxlength="60" placeholder="f.eks. Knebøy" required>
+          </label>
+          <label class="plan-exercise-field">Sett og repetisjoner
+            <input type="text" id="planExerciseDetail" maxlength="120" placeholder="f.eks. 3 sett × 10 repetisjoner" required>
+          </label>
+          <button type="submit" class="plan-exercise-submit">Legg til i treningsplanen</button>
+        </form>
+      </section>
       <section class="card custom-card">
-        <h2>Egne øvelser</h2>
-        <p class="subtle">Legg til øvelser du vil ha med i treningsloggen.</p>
+        <h2>Øvelsesliste</h2>
+        <p class="subtle">Lagre øvelsesnavn her. Bruk «Tilpass treningsplanen» for å legge en øvelse inn på en treningsdag.</p>
         <form id="exerciseForm" class="inline-form">
           <label class="visually-hidden" for="exerciseInput">Ny øvelse</label>
           <input type="text" id="exerciseInput" maxlength="60" placeholder="Ny øvelse" required>
@@ -150,7 +170,7 @@
       <div class="section-heading"><div><p class="eyebrow">DIN PERSONLIGE FREMGANG</p><h2>Treningsbilder</h2></div></div>
       <section class="card photo-card">
         <h3>Ta et bilde av fremgangen din</h3>
-        <p class="subtle">Bildene lagres privat på denne enheten. Ta et nytt bilde med kameraet eller velg et fra telefonen.</p>
+        <p class="subtle">Trykk «Ta bilde med kamera» og tillat kameratilgang når telefonen spør, eller velg et bilde fra telefonen.</p>
         <form id="photoForm" class="photo-form">
           <label class="photo-field">Dato<input type="date" id="photoDate" required></label>
           <label class="photo-field">Treningsdag
@@ -161,13 +181,27 @@
               <option value="Fredag">Fredag</option>
             </select>
           </label>
-          <label class="photo-button">📷 Ta eller velg bilde
-            <input type="file" id="photoInput" accept="image/*" capture="user">
+          <button type="button" id="startCameraButton" class="photo-button">📷 Ta bilde med kamera</button>
+          <label class="photo-button photo-picker">Velg bilde fra telefonen
+            <input type="file" id="photoInput" accept="image/*">
           </label>
         </form>
         <p class="photo-privacy">Bildene blir ikke lastet opp eller delt.</p>
         <div id="photoGallery" class="photo-gallery" aria-live="polite"></div>
       </section>
+      <dialog id="cameraDialog" class="camera-dialog" aria-labelledby="cameraDialogTitle">
+        <div class="edit-dialog-heading">
+          <h2 id="cameraDialogTitle">Ta fremgangsbilde</h2>
+          <button type="button" id="closeCameraButton" class="dialog-close" aria-label="Lukk kamera">Lukk</button>
+        </div>
+        <video id="cameraPreview" autoplay muted playsinline></video>
+        <p id="cameraStatus" class="camera-status" role="status">Klargjør kameraet …</p>
+        <div class="edit-dialog-actions">
+          <button type="button" id="choosePhotoFromCamera" class="button-secondary" hidden>Velg fra telefonen</button>
+          <button type="button" id="cancelCameraButton" class="button-secondary">Avbryt</button>
+          <button type="button" id="capturePhotoButton" disabled>Ta bilde</button>
+        </div>
+      </dialog>
     </section>
 
     <section id="innstillinger" class="page-section">

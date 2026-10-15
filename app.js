@@ -34,6 +34,65 @@ const workouts = [
   }
 ];
 
+function defaultWorkoutPlan() {
+  return Object.fromEntries(workouts.map((workout) => [
+    workout.day,
+    workout.exercises.map((exercise, index) => ({
+      ...exercise,
+      id: `${workout.day}-${index}`
+    }))
+  ]));
+}
+
+function normalizeWorkoutPlan(savedPlan) {
+  const defaults = defaultWorkoutPlan();
+  if (!savedPlan || typeof savedPlan !== "object" || Array.isArray(savedPlan)) return defaults;
+  const validImages = new Set(workouts.flatMap((workout) =>
+    workout.exercises.map((exercise) => exercise.image)
+  ));
+  return Object.fromEntries(workouts.map((workout) => {
+    const savedExercises = savedPlan[workout.day];
+    if (!Array.isArray(savedExercises)) return [workout.day, defaults[workout.day]];
+    const usedIds = new Set();
+    const exercises = savedExercises.filter((exercise) =>
+      exercise && typeof exercise === "object" && !Array.isArray(exercise) &&
+      typeof exercise.id === "string" && exercise.id.length > 0 && exercise.id.length <= 100 &&
+      typeof exercise.name === "string" && exercise.name.trim().length > 0 && exercise.name.length <= 60 &&
+      typeof exercise.detail === "string" && exercise.detail.trim().length > 0 && exercise.detail.length <= 120 &&
+      (exercise.guide === undefined || typeof exercise.guide === "string") &&
+      (exercise.image === undefined || validImages.has(exercise.image)) &&
+      (exercise.timed === undefined || typeof exercise.timed === "boolean") &&
+      !usedIds.has(exercise.id) && usedIds.add(exercise.id)
+    ).map((exercise) => ({
+      id: exercise.id,
+      name: exercise.name.trim(),
+      detail: exercise.detail.trim(),
+      guide: typeof exercise.guide === "string" ? exercise.guide.slice(0, 240) : "",
+      image: validImages.has(exercise.image) ? exercise.image : "",
+      timed: exercise.timed === true
+    }));
+    return [workout.day, exercises];
+  }));
+}
+
+function migrateCompletedEntries(completed) {
+  if (!completed || typeof completed !== "object" || Array.isArray(completed)) return {};
+  const legacyDays = Object.fromEntries(workouts.map((workout) => [workout.day, workout]));
+  return Object.fromEntries(Object.entries(completed).map(([date, entries]) => [
+    date,
+    Array.isArray(entries) ? entries.map((key) => {
+      if (typeof key !== "string") return key;
+      const match = key.match(/^(Mandag|Onsdag|Fredag)-(\d+)$/);
+      const exercise = match && legacyDays[match[1]].exercises[Number(match[2])];
+      return exercise ? `${match[1]}-${match[1]}-${Number(match[2])}` : key;
+    }) : entries
+  ]));
+}
+
+function workoutExerciseKey(day, exercise) {
+  return `${day}-${exercise.id}`;
+}
+
 let state = loadState();
 let installPrompt = null;
 let toastTimer;
@@ -57,8 +116,9 @@ function loadState() {
       exercises: Array.isArray(saved.exercises)
         ? saved.exercises.filter((item) => typeof item === "string")
         : Array.isArray(legacyExercises) ? legacyExercises.filter((item) => typeof item === "string") : [],
+      workoutPlan: normalizeWorkoutPlan(saved.workoutPlan),
       lifts: saved.lifts && typeof saved.lifts === "object" ? saved.lifts : {},
-      completed: saved.completed && typeof saved.completed === "object" ? saved.completed : {},
+      completed: migrateCompletedEntries(saved.completed),
       cardioSessions: Array.isArray(saved.cardioSessions) ? saved.cardioSessions.filter((entry) =>
         entry && typeof entry.id === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date) &&
         ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(entry.activity) &&
@@ -69,7 +129,7 @@ function loadState() {
     };
   } catch (error) {
     console.error("Kunne ikke lese lagrede treningsdata.", error);
-    return { weights: [], exercises: [], completed: {}, cardioSessions: [], theme: "dark" };
+    return { weights: [], exercises: [], workoutPlan: defaultWorkoutPlan(), lifts: {}, completed: {}, cardioSessions: [], theme: "dark" };
   }
 }
 
@@ -102,21 +162,25 @@ function renderWorkouts() {
   const container = document.querySelector("#workoutPlan");
   const today = new Intl.DateTimeFormat("no-NO", { weekday: "long" }).format(new Date());
   container.innerHTML = workouts.map((workout) => {
-    const rows = workout.exercises.map((exercise, index) => {
-      const key = `${workout.day}-${index}`;
+    const exercises = state.workoutPlan[workout.day];
+    const rows = exercises.map((exercise) => {
+      const key = workoutExerciseKey(workout.day, exercise);
       const checked = state.completed[localDate()]?.includes(key);
       const date = localDate();
       const savedWeight = state.lifts[date]?.[workout.day]?.[exercise.name] ?? "";
       const previousWeight = getPreviousLiftWeight(workout.day, exercise.name, date);
       return `<li class="exercise">
-        <svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=11#${exercise.image}"></use></svg>
+        ${exercise.image
+          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=12#${escapeHtml(exercise.image)}"></use></svg>`
+          : '<span class="exercise-art exercise-art-placeholder" aria-hidden="true">🏋️</span>'}
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
         </div>
         <label class="exercise-check"><input type="checkbox" data-workout="${escapeHtml(key)}" ${checked ? "checked" : ""} aria-label="Marker ${escapeHtml(exercise.name)} som fullført"><span class="checkmark"></span></label>
+        <button type="button" class="remove-plan-exercise" data-remove-plan-day="${escapeHtml(workout.day)}" data-remove-plan-id="${escapeHtml(exercise.id)}" aria-label="Fjern ${escapeHtml(exercise.name)} fra ${escapeHtml(workout.day)}">Fjern</button>
       </li>`;
     }).join("");
-    return `<section class="card workout-card"><div class="workout-heading"><div><span class="day-label">${workout.day}</span><h2>${escapeHtml(workout.title)}</h2></div>${workout.day.toLowerCase() === today ? '<span class="today-label">I dag</span>' : ""}</div><ul class="exercise-list">${rows}</ul></section>`;
+    return `<section class="card workout-card"><div class="workout-heading"><div><span class="day-label">${workout.day}</span><h2>${escapeHtml(workout.title)}</h2></div>${workout.day.toLowerCase() === today ? '<span class="today-label">I dag</span>' : ""}</div>${rows ? `<ul class="exercise-list">${rows}</ul>` : '<p class="exercise-empty">Ingen øvelser ennå. Legg til en øvelse i skjemaet nedenfor.</p>'}</section>`;
   }).join("");
 }
 
@@ -187,7 +251,7 @@ function renderWeights() {
 function renderStrengthProgress() {
   const select = document.querySelector("#strengthExercise");
   const liftableExercises = workouts.flatMap((workout) =>
-    workout.exercises.filter((exercise) => !exercise.timed).map((exercise) => exercise.name)
+    state.workoutPlan[workout.day].filter((exercise) => !exercise.timed).map((exercise) => exercise.name)
   );
   if (!liftableExercises.includes(selectedStrengthExercise)) {
     selectedStrengthExercise = liftableExercises[0];
@@ -479,7 +543,10 @@ function renderStats() {
   const count = Object.entries(state.completed).reduce((total, [date, entries]) => {
     if (!Array.isArray(entries)) return total;
     return total + workouts.filter((workout) =>
-      workout.exercises.every((_, index) => entries.includes(`${workout.day}-${index}`))
+      state.workoutPlan[workout.day].length > 0 &&
+      state.workoutPlan[workout.day].every((exercise) =>
+        entries.includes(workoutExerciseKey(workout.day, exercise))
+      )
     ).length;
   }, 0);
   document.querySelector("#workoutCount").textContent = String(count);
@@ -725,6 +792,9 @@ function validateBackup(payload) {
   }
   const backup = payload.state;
   const dayNames = workouts.map((workout) => workout.day);
+  const workoutPlan = backup.workoutPlan === undefined
+    ? defaultWorkoutPlan()
+    : validateBackupWorkoutPlan(backup.workoutPlan);
   if (!Array.isArray(backup.weights) || !Array.isArray(backup.exercises) ||
       !backup.lifts || typeof backup.lifts !== "object" || Array.isArray(backup.lifts) ||
       !backup.completed || typeof backup.completed !== "object" || Array.isArray(backup.completed) ||
@@ -749,7 +819,7 @@ function validateBackup(payload) {
         throw new Error("Sikkerhetskopien inneholder en ukjent treningsdag.");
       }
       Object.entries(entries).forEach(([exercise, value]) => {
-        if (!workout.exercises.some((item) => item.name === exercise && !item.timed) ||
+        if (typeof exercise !== "string" || !exercise.trim() || exercise.length > 60 ||
             !Number.isFinite(value) || value < 0.5 || value > 1000) {
           throw new Error("Sikkerhetskopien inneholder en ugyldig løftevekt.");
         }
@@ -758,10 +828,8 @@ function validateBackup(payload) {
   });
   Object.entries(backup.completed).forEach(([date, entries]) => {
     if (!isValidStoredDate(date) || !Array.isArray(entries) ||
-        entries.some((key) => !dayNames.some((day) => {
-          const workout = workouts.find((item) => item.day === day);
-          return workout.exercises.some((_, index) => key === `${day}-${index}`);
-        }))) {
+        entries.some((key) => typeof key !== "string" || key.length > 160 ||
+          !dayNames.some((day) => key.startsWith(`${day}-`)))) {
       throw new Error("Sikkerhetskopien inneholder en ugyldig øktregistrering.");
     }
   });
@@ -801,13 +869,56 @@ function validateBackup(payload) {
     state: {
       weights: backup.weights,
       exercises: backup.exercises,
+      workoutPlan,
       lifts: backup.lifts,
-      completed: backup.completed,
+      completed: migrateCompletedEntries(backup.completed),
       cardioSessions: backup.cardioSessions,
       theme: backup.theme
     },
     photos
   };
+}
+
+function validateBackupWorkoutPlan(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Sikkerhetskopien inneholder en ugyldig treningsplan.");
+  }
+  const defaults = defaultWorkoutPlan();
+  const validImages = new Set(workouts.flatMap((workout) =>
+    workout.exercises.map((exercise) => exercise.image)
+  ));
+  return Object.fromEntries(workouts.map((workout) => {
+    const exercises = value[workout.day] === undefined ? defaults[workout.day] : value[workout.day];
+    if (!Array.isArray(exercises)) throw new Error("Sikkerhetskopien inneholder en ugyldig treningsdag.");
+    const ids = new Set();
+    const names = new Set();
+    const checked = exercises.map((exercise) => {
+      if (!exercise || typeof exercise !== "object" || Array.isArray(exercise) ||
+          typeof exercise.id !== "string" || !exercise.id.trim() || exercise.id.length > 100 ||
+          typeof exercise.name !== "string" || !exercise.name.trim() || exercise.name.length > 60 ||
+          typeof exercise.detail !== "string" || !exercise.detail.trim() || exercise.detail.length > 120 ||
+          (exercise.guide !== undefined && typeof exercise.guide !== "string") ||
+          (exercise.image !== undefined && exercise.image !== "" && !validImages.has(exercise.image)) ||
+          (exercise.timed !== undefined && typeof exercise.timed !== "boolean")) {
+        throw new Error("Sikkerhetskopien inneholder en ugyldig øvelse i treningsplanen.");
+      }
+      const name = exercise.name.trim().toLocaleLowerCase("no");
+      if (ids.has(exercise.id) || names.has(name)) {
+        throw new Error("Sikkerhetskopien inneholder dupliserte øvelser.");
+      }
+      ids.add(exercise.id);
+      names.add(name);
+      return {
+        id: exercise.id,
+        name: exercise.name.trim(),
+        detail: exercise.detail.trim(),
+        guide: typeof exercise.guide === "string" ? exercise.guide.slice(0, 240) : "",
+        image: validImages.has(exercise.image) ? exercise.image : "",
+        timed: exercise.timed === true
+      };
+    });
+    return [workout.day, checked];
+  }));
 }
 
 function blobToDataUrl(blob) {
@@ -915,6 +1026,78 @@ async function preparePhoto(file) {
     return blob;
   } finally {
     if (bitmap) bitmap.close();
+  }
+}
+
+async function saveProgressPhoto(blob) {
+  const photoDate = document.querySelector("#photoDate").value;
+  if (!isValidStoredDate(photoDate)) {
+    throw new Error("Velg en gyldig dato som ikke er i fremtiden.");
+  }
+  await storePhoto({
+    id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+    date: photoDate,
+    workout: document.querySelector("#photoWorkout").value,
+    createdAt: new Date().toISOString(),
+    blob
+  });
+  await renderPhotos();
+  showToast("Bildet er lagret trygt på denne enheten.");
+}
+
+let cameraStream = null;
+let cameraRequestId = 0;
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+  }
+  document.querySelector("#cameraPreview").srcObject = null;
+  document.querySelector("#capturePhotoButton").disabled = true;
+}
+
+async function startCamera() {
+  const dialog = document.querySelector("#cameraDialog");
+  const status = document.querySelector("#cameraStatus");
+  const captureButton = document.querySelector("#capturePhotoButton");
+  const choosePhotoButton = document.querySelector("#choosePhotoFromCamera");
+  const preview = document.querySelector("#cameraPreview");
+  const requestId = ++cameraRequestId;
+  if (!dialog.open) dialog.showModal();
+  status.textContent = "Be appen om kameratilgang hvis telefonen spør.";
+  choosePhotoButton.hidden = true;
+  if (!navigator.mediaDevices?.getUserMedia) {
+    status.textContent = "Kamera støttes ikke i denne nettleseren. Velg et bilde fra telefonen i stedet.";
+    choosePhotoButton.hidden = false;
+    return;
+  }
+  try {
+    stopCamera();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: "user" } }
+    });
+    if (requestId !== cameraRequestId || !dialog.open) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
+    cameraStream = stream;
+    preview.srcObject = cameraStream;
+    await preview.play();
+    captureButton.disabled = false;
+    status.textContent = "Hold telefonen stødig og trykk «Ta bilde».";
+  } catch (error) {
+    if (requestId !== cameraRequestId) return;
+    stopCamera();
+    const explanation = error.name === "NotAllowedError"
+      ? "Kameratilgang ble avslått. Tillat kamera for Min PT i nettleserens innstillinger, eller velg et bilde fra telefonen."
+      : error.name === "NotFoundError"
+        ? "Fant ikke et kamera på enheten. Velg et bilde fra telefonen i stedet."
+        : "Kameraet kunne ikke åpnes. Kontroller kameratilgangen eller velg et bilde fra telefonen.";
+    status.textContent = explanation;
+    choosePhotoButton.hidden = false;
+    console.error("Kunne ikke åpne kameraet.", error);
   }
 }
 
@@ -1208,6 +1391,45 @@ document.querySelector("#strengthExercise").addEventListener("change", (event) =
   renderStrengthProgress();
 });
 
+document.querySelector("#planExerciseForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const day = document.querySelector("#planExerciseDay").value;
+  const name = document.querySelector("#planExerciseName").value.trim();
+  const detail = document.querySelector("#planExerciseDetail").value.trim();
+  const workout = workouts.find((item) => item.day === day);
+  if (!workout || !name || !detail) {
+    showToast("Velg treningsdag og fyll inn øvelsesnavn og sett/repetisjoner.");
+    return;
+  }
+  if (state.workoutPlan[day].some((exercise) =>
+    exercise.name.toLocaleLowerCase("no") === name.toLocaleLowerCase("no")
+  )) {
+    showToast("Denne øvelsen finnes allerede på valgt treningsdag.");
+    return;
+  }
+  const id = typeof crypto.randomUUID === "function"
+    ? `custom-${crypto.randomUUID()}`
+    : `custom-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  state.workoutPlan[day].push({ id, name, detail, guide: "", image: "", timed: false });
+  saveState();
+  render();
+  document.querySelector("#planExerciseName").value = "";
+  document.querySelector("#planExerciseDetail").value = "";
+  showToast(`${name} er lagt til på ${day}.`);
+});
+
+document.querySelector("#workoutPlan").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-remove-plan-id]");
+  if (!button) return;
+  const { removePlanDay: day, removePlanId: id } = button.dataset;
+  const exercise = state.workoutPlan[day]?.find((item) => item.id === id);
+  if (!exercise) return;
+  state.workoutPlan[day] = state.workoutPlan[day].filter((item) => item.id !== id);
+  saveState();
+  render();
+  showToast(`${exercise.name} er fjernet fra ${day}.`);
+});
+
 document.querySelector("#exerciseForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const input = document.querySelector("#exerciseInput");
@@ -1280,6 +1502,7 @@ document.querySelector("#clearData").addEventListener("click", async () => {
   state.weights = [];
   state.lifts = {};
   state.exercises = [];
+  state.workoutPlan = defaultWorkoutPlan();
   state.completed = {};
   state.cardioSessions = [];
   localStorage.removeItem("weight");
@@ -1313,21 +1536,69 @@ document.querySelector("#photoInput").addEventListener("change", async (event) =
   }
   try {
     const blob = await preparePhoto(file);
-    await storePhoto({
-      id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-      date: photoDate,
-      workout: document.querySelector("#photoWorkout").value,
-      createdAt: new Date().toISOString(),
-      blob
-    });
-    await renderPhotos();
-    showToast("Bildet er lagret trygt på denne enheten.");
+    await saveProgressPhoto(blob);
   } catch (error) {
     console.error("Kunne ikke lagre treningsbildet.", error);
     showToast(error.message || "Bildet kunne ikke lagres. Kontroller lagringsplassen og prøv igjen.");
   } finally {
     input.value = "";
   }
+});
+
+document.querySelector("#startCameraButton").addEventListener("click", startCamera);
+document.querySelector("#choosePhotoFromCamera").addEventListener("click", () => {
+  closeCamera();
+  document.querySelector("#photoInput").click();
+});
+document.querySelector("#capturePhotoButton").addEventListener("click", async () => {
+  const preview = document.querySelector("#cameraPreview");
+  const status = document.querySelector("#cameraStatus");
+  if (!preview.videoWidth || !preview.videoHeight) {
+    status.textContent = "Kameraet er ikke klart ennå. Vent litt og prøv igjen.";
+    return;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = preview.videoWidth;
+  canvas.height = preview.videoHeight;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    status.textContent = "Kunne ikke ta bildet. Prøv å velge et bilde fra telefonen.";
+    return;
+  }
+  context.drawImage(preview, 0, 0);
+  status.textContent = "Lagrer bildet …";
+  document.querySelector("#capturePhotoButton").disabled = true;
+  try {
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob((image) => {
+        if (image) resolve(image);
+        else reject(new Error("Kunne ikke klargjøre bildet. Prøv igjen."));
+      }, "image/jpeg", 0.88);
+    });
+    await saveProgressPhoto(await preparePhoto(blob));
+    document.querySelector("#cameraDialog").close();
+    stopCamera();
+  } catch (error) {
+    status.textContent = error.message || "Bildet kunne ikke lagres. Kontroller lagringsplassen og prøv igjen.";
+    console.error("Kunne ikke lagre fremgangsbildet fra kameraet.", error);
+    document.querySelector("#capturePhotoButton").disabled = false;
+  }
+});
+
+function closeCamera() {
+  cameraRequestId++;
+  if (document.querySelector("#cameraDialog").open) document.querySelector("#cameraDialog").close();
+  stopCamera();
+}
+
+document.querySelector("#cancelCameraButton").addEventListener("click", closeCamera);
+document.querySelector("#closeCameraButton").addEventListener("click", closeCamera);
+document.querySelector("#cameraDialog").addEventListener("cancel", () => {
+  cameraRequestId++;
+  stopCamera();
+});
+document.querySelector("#cameraDialog").addEventListener("click", (event) => {
+  if (event.target === event.currentTarget) closeCamera();
 });
 
 document.querySelector("#photoGallery").addEventListener("click", async (event) => {
@@ -1358,7 +1629,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=11")
+    navigator.serviceWorker.register("./service-worker.js?v=12")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }
