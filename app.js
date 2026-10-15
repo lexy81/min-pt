@@ -1,5 +1,6 @@
 const STORAGE_KEY = "min-pt-app-v1";
 const PHOTO_DATABASE = "min-pt-media-v1";
+const cardioActivities = ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin", "Stakemaskin"];
 const workouts = [
   {
     day: "Mandag",
@@ -121,7 +122,7 @@ function loadState() {
       completed: migrateCompletedEntries(saved.completed),
       cardioSessions: Array.isArray(saved.cardioSessions) ? saved.cardioSessions.filter((entry) =>
         entry && typeof entry.id === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date) &&
-        ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(entry.activity) &&
+        cardioActivities.includes(entry.activity) &&
         Number.isFinite(entry.duration) && entry.duration >= 1 && entry.duration <= 600 &&
         Number.isFinite(entry.distance) && entry.distance >= 0 && entry.distance <= 1000
       ) : [],
@@ -171,7 +172,7 @@ function renderWorkouts() {
       const previousWeight = getPreviousLiftWeight(workout.day, exercise.name, date);
       return `<li class="exercise">
         ${exercise.image
-          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=12#${escapeHtml(exercise.image)}"></use></svg>`
+          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=13#${escapeHtml(exercise.image)}"></use></svg>`
           : '<span class="exercise-art exercise-art-placeholder" aria-hidden="true">🏋️</span>'}
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
@@ -654,7 +655,7 @@ function openEditDialog(type, record) {
   } else if (type === "cardio") {
     title.textContent = "Rediger kondisjonsøkt";
     appendEditField(fields, "Aktivitet", "activity", record.activity, "select", {
-      choices: ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"]
+      choices: cardioActivities
     });
     appendEditField(fields, "Tid (minutter)", "duration", record.duration, "number", { min: 1, max: 600, step: 0.1 });
     appendEditField(fields, "Distanse (km)", "distance", record.distance, "number", { min: 0, max: 1000, step: 0.01 });
@@ -835,7 +836,7 @@ function validateBackup(payload) {
   });
   if (backup.cardioSessions.some((entry) => !entry || typeof entry.id !== "string" ||
       !isValidStoredDate(entry.date) ||
-      !["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(entry.activity) ||
+      !cardioActivities.includes(entry.activity) ||
       !Number.isFinite(entry.duration) || entry.duration < 1 || entry.duration > 600 ||
       !Number.isFinite(entry.distance) || entry.distance < 0 || entry.distance > 1000)) {
     throw new Error("Sikkerhetskopien inneholder en ugyldig kondisjonsøkt.");
@@ -1197,7 +1198,7 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   const duration = Number(document.querySelector("#cardioDuration").value);
   const distance = Number(document.querySelector("#cardioDistance").value);
   const date = document.querySelector("#cardioDate").value;
-  if (!["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(activity) ||
+  if (!cardioActivities.includes(activity) ||
       !Number.isFinite(duration) || duration < 1 || duration > 600 ||
       !Number.isFinite(distance) || distance < 0 || distance > 1000 ||
       !date || date > localDate()) {
@@ -1270,7 +1271,7 @@ document.querySelector("#editForm").addEventListener("submit", (event) => {
     const activity = String(values.get("activity") || "");
     const duration = Number(values.get("duration"));
     const distance = Number(values.get("distance"));
-    if (!["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin"].includes(activity) ||
+    if (!cardioActivities.includes(activity) ||
         !Number.isFinite(duration) || duration < 1 || duration > 600 ||
         !Number.isFinite(distance) || distance < 0 || distance > 1000) {
       error.textContent = "Kontroller aktivitet, tid og distanse.";
@@ -1629,7 +1630,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=12")
+    navigator.serviceWorker.register("./service-worker.js?v=13")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }
