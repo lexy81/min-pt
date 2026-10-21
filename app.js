@@ -280,7 +280,7 @@ function renderWorkouts() {
         ${exercisePhoto
           ? `<img class="exercise-art" src="${exercisePhoto}" alt="${exercisePhotoAlt[exercise.name]}">`
           : exercise.image
-          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=35#${escapeHtml(exercise.image)}"></use></svg>`
+          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=37#${escapeHtml(exercise.image)}"></use></svg>`
           : '<span class="exercise-art exercise-art-placeholder" aria-hidden="true">🏋️</span>'}
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
@@ -748,6 +748,71 @@ function drawCardioChart(container, history, activity, periodDays) {
   container.append(svg);
 }
 
+function renderGroupClassStats() {
+  const period = document.querySelector("#groupClassPeriod").value;
+  const today = localDate();
+  const startDate = period === "all"
+    ? ""
+    : (() => {
+      const from = new Date(`${today}T12:00:00`);
+      from.setDate(from.getDate() - Number(period) + 1);
+      return localDate(from);
+    })();
+  const sessions = state.workoutSessions.filter((session) =>
+    session.groupClass && (!startDate || (session.date >= startDate && session.date <= today))
+  );
+  const counts = new Map(groupClasses.map((item) => [item.name, 0]));
+  sessions.forEach((session) => counts.set(session.groupClass, (counts.get(session.groupClass) || 0) + 1));
+  const ranked = groupClasses
+    .map((item) => ({ ...item, count: counts.get(item.name) || 0 }))
+    .filter((item) => item.count > 0)
+    .sort((first, second) => second.count - first.count || first.name.localeCompare(second.name, "no"));
+  const favorite = ranked[0];
+  const periodText = period === "all" ? "hele perioden" : `de siste ${period} dagene`;
+  document.querySelector("#groupClassCount").textContent = String(sessions.length);
+  document.querySelector("#groupClassVariety").textContent = String(ranked.length);
+  document.querySelector("#groupClassFavorite").textContent = favorite ? favorite.name : "–";
+  document.querySelector("#groupClassSummary").textContent = sessions.length
+    ? `${sessions.length} deltakelser ${periodText}${favorite ? ` · Mest besøkt: ${favorite.name} (${favorite.count})` : ""}.`
+    : `Ingen registrerte gruppetimer ${periodText}.`;
+
+  const breakdown = document.querySelector("#groupClassBreakdown");
+  breakdown.replaceChildren();
+  if (!ranked.length) {
+    const empty = document.createElement("li");
+    empty.className = "cardio-empty";
+    empty.textContent = "Registrerte timer vises her, sortert etter antall deltakelser.";
+    breakdown.append(empty);
+    return;
+  }
+  const maxCount = ranked[0].count;
+  ranked.forEach((item) => {
+    const row = document.createElement("li");
+    row.className = "group-class-stat";
+    const labels = document.createElement("div");
+    labels.className = "group-class-stat-labels";
+    const name = document.createElement("span");
+    name.textContent = item.name;
+    const count = document.createElement("strong");
+    count.textContent = String(item.count);
+    labels.append(name, count);
+    const track = document.createElement("div");
+    track.className = "group-class-stat-track";
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-label", `${item.name}: ${item.count} deltakelser`);
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", String(maxCount));
+    track.setAttribute("aria-valuenow", String(item.count));
+    const fill = document.createElement("span");
+    fill.style.width = `${item.count / maxCount * 100}%`;
+    track.append(fill);
+    const category = document.createElement("small");
+    category.textContent = item.category;
+    row.append(labels, track, category);
+    breakdown.append(row);
+  });
+}
+
 function renderStats() {
   const count = state.workoutSessions.length;
   document.querySelector("#workoutCount").textContent = String(count);
@@ -755,6 +820,7 @@ function renderStats() {
   const day = new Intl.DateTimeFormat("no-NO", { weekday: "long" }).format(new Date());
   const todaysWorkout = workouts.find((workout) => state.workoutSchedule[workout.day].toLowerCase() === day);
   document.querySelector("#todayWorkout").textContent = todaysWorkout ? state.workoutSchedule[todaysWorkout.day] : "Hviledag";
+  renderGroupClassStats();
 }
 
 function render() {
@@ -1722,6 +1788,8 @@ document.querySelector("#strengthExercise").addEventListener("change", (event) =
   renderStrengthProgress();
 });
 
+document.querySelector("#groupClassPeriod").addEventListener("change", renderGroupClassStats);
+
 document.querySelector("#planExerciseForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const day = document.querySelector("#planExerciseDay").value;
@@ -2044,7 +2112,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=35")
+    navigator.serviceWorker.register("./service-worker.js?v=37")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }

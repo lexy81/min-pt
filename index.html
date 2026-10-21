@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=35">
+  <link rel="manifest" href="manifest.json?v=37">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=35">
-  <script src="app.js?v=35" defer></script>
+  <link rel="stylesheet" href="style.css?v=37">
+  <script src="app.js?v=37" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -214,6 +214,24 @@
           </div>
           <p id="cardioChartSummary" class="strength-summary"></p>
           <div id="cardioChart" class="strength-chart cardio-chart" role="img" aria-label="Graf over kondisjonsdistanse"></div>
+        </div>
+        <div class="group-class-progress">
+          <div class="strength-heading">
+            <div><h3>Gruppetimer</h3><p class="subtle">Se hvilke gruppetimer du har deltatt på.</p></div>
+          </div>
+          <label class="strength-picker" for="groupClassPeriod">Periode
+            <select id="groupClassPeriod">
+              <option value="all">Hele perioden</option>
+              <option value="30">Siste 30 dager</option>
+            </select>
+          </label>
+          <div class="cardio-summary">
+            <div><span class="stat-label">Deltakelser</span><strong id="groupClassCount">0</strong></div>
+            <div><span class="stat-label">Ulike timer</span><strong id="groupClassVariety">0</strong></div>
+            <div><span class="stat-label">Mest besøkt</span><strong id="groupClassFavorite">–</strong></div>
+          </div>
+          <p id="groupClassSummary" class="strength-summary"></p>
+          <ul id="groupClassBreakdown" class="group-class-breakdown" aria-label="Deltakelser per gruppetime"></ul>
         </div>
         <div class="strength-progress">
           <div class="strength-heading"><div><h3>Styrkeutvikling</h3><p class="subtle">Se hvordan løftevekten din endrer seg fra økt til økt.</p></div></div>

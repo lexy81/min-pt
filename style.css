@@ -135,8 +135,19 @@ button:hover { background: #388e3c; }
 .chart-empty { display: grid; height: 100%; place-items: center; margin: 0; padding: 16px; color: var(--muted); text-align: center; font-size: .88rem; }
 .strength-progress { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
 .cardio-progress { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.group-class-progress { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.group-class-progress .strength-heading { margin-bottom: 12px; }
+.group-class-progress .strength-picker select { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.group-class-breakdown { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.group-class-stat { display: grid; gap: 5px; }
+.group-class-stat-labels { display: flex; justify-content: space-between; gap: 12px; font-size: .88rem; }
+.group-class-stat-labels strong { color: var(--green-light); }
+.group-class-stat-track { height: 8px; overflow: hidden; border-radius: 99px; background: var(--surface-raised); }
+.group-class-stat-track span { display: block; height: 100%; border-radius: inherit; background: var(--green-light); }
+.group-class-stat small { color: var(--muted); font-size: .75rem; }
 .cardio-progress-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .cardio-progress .strength-picker select { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.group-class-progress .strength-picker select { max-width: 300px; }
 .cardio-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 14px; }
 .cardio-summary > div { display: grid; gap: 3px; padding: 10px; border-radius: 8px; background: var(--surface-raised); }
 .cardio-summary strong { color: var(--text); font-size: .92rem; }
@@ -253,7 +264,7 @@ footer span { color: var(--green-light); }
 [data-theme="light"] .cardio-field input, [data-theme="light"] .cardio-field select { border-color: var(--border); background: #fff; }
 [data-theme="light"] .group-workout-form select, [data-theme="light"] .group-workout-form input { border-color: var(--border); background: #fff; }
 [data-theme="light"] .workout-schedule-picker select, [data-theme="light"] .workout-log-controls input, [data-theme="light"] .extra-workout-form select, [data-theme="light"] .extra-workout-form input { border-color: var(--border); background: #fff; }
-[data-theme="light"] .cardio-progress .strength-picker select, [data-theme="light"] .edit-field input, [data-theme="light"] .edit-field select, [data-theme="light"] .rest-timer-controls select { border-color: var(--border); background: #fff; }
+[data-theme="light"] .cardio-progress .strength-picker select, [data-theme="light"] .group-class-progress .strength-picker select, [data-theme="light"] .edit-field input, [data-theme="light"] .edit-field select, [data-theme="light"] .rest-timer-controls select { border-color: var(--border); background: #fff; }
 [data-theme="light"] .backup-tools button, [data-theme="light"] .backup-import-button { background: #f0f1ed; }
 [data-theme="light"] .exercise-art { background: #e8f1e6; }
 @media (max-width: 560px) {
