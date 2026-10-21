@@ -14,16 +14,19 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 
 ## Funksjoner
 
-- Treningsprogram for mandag, onsdag og fredag med avkryssing av øvelser
+- Tre treningsøkter med justerbare ukedager, avkryssing av øvelser og datoført treningshistorikk
+- Registrer ekstra treningsøkter på valgfri dato, også på dager utenfor den faste ukeplanen
+- Registrer gruppetimer fra Plankebyen Trenings timebeskrivelser og velg dato i kalenderen
 - Tilpass treningsplanen ved å legge til øvelser på valgt dag eller fjerne dem
 - Oppvarmings- og kondisjonslogg for tredemølle, sykling, gåtur, ellipsemaskin og stakemaskin med tid i minutter og sekunder, distanse, hastighet, stigning og tempo per kilometer
 - Kondisjonsgraf med oppsummering for siste 7 eller 30 dager
 - Hvileklokke med valgbare pauser mellom sett
 - Rediger tidligere kroppsvekt-, kondisjons- og løftevektregistreringer
 - Eksporter og importer sikkerhetskopi med treningsbilder
-- Brystpress-, skulderpress-, Pec Deck-, Triceps Pushdown-, Nedtrekk- og roingskortene viser bildene av maskinene
+- Treningskortene viser maskinbilder der de finnes, og illustrasjoner ellers, også ved bruk uten nett
 - Tydeligere, fargekodede treningsillustrasjoner med apparat, utøver og bevegelsesretning, pluss teknikkforklaring ved hver øvelse
 - Registrer løftevekt for hver styrkeøvelse, med forrige vekt som hint
+
 - Fremgangsgraf for løftevekt med valg av øvelse
 - Kroppsvekt med historikk og utviklingsgraf
 - Egne øvelser med mulighet for å fjerne dem

@@ -1,6 +1,57 @@
 const STORAGE_KEY = "min-pt-app-v1";
 const PHOTO_DATABASE = "min-pt-media-v1";
 const cardioActivities = ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin", "Stakemaskin"];
+const weekdays = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
+const groupClasses = [
+  { name: "Yoga myk og rolig", category: "Kropp & sjel" },
+  { name: "Pust & bekkenbunn", category: "Kropp & sjel" },
+  { name: "Lymph Flow", category: "Kropp & sjel" },
+  { name: "Pilates", category: "Kropp & sjel" },
+  { name: "Voksen dans og bevegelse", category: "For alle" },
+  { name: "Stram – sett og repetisjoner", category: "For alle" },
+  { name: "Stram – styrke og mobilitet", category: "For alle" },
+  { name: "Løpesterk", category: "For alle" },
+  { name: "Overkropp", category: "For alle" },
+  { name: "Core", category: "For alle" },
+  { name: "Mage, rumpe og lår", category: "For alle" },
+  { name: "Voksen styrke og stabilitet", category: "For alle" },
+  { name: "Cross training", category: "Litt trent" },
+  { name: "Styrke med stang", category: "Litt trent" },
+  { name: "Løp", category: "Litt trent" },
+  { name: "Spinn", category: "Litt trent" },
+  { name: "Fredags Surprise", category: "Spesialtimer" },
+  { name: "Spesialtime: dans", category: "Spesialtimer" }
+];
+const exercisePhotos = {
+  Brystpress: "./images/brystpress-machine.png",
+  Skulderpress: "./images/skulderpress-machine.png",
+  "Pec Deck": "./images/pec-deck-machine.png",
+  "Triceps Pushdown": "./images/triceps-machine.png",
+  Nedtrekk: "./images/nedtrekk-machine.png",
+  "Sittende roing": "./images/roing-machine.png",
+  "Rygghev-maskin": "./images/back-extension-machine.png",
+  "Biceps Curl": "./images/biceps-curl-machine.png",
+  Beinpress: "./images/leg-press-machine.png",
+  "Leg Curl": "./images/leg-curl-machine.png",
+  "Leg Extension": "./images/leg-extension-machine.png",
+  Magemaskin: "./images/ab-machine.png",
+  "Roterende magemaskin": "./images/rotating-ab-machine.png"
+};
+const exercisePhotoAlt = {
+  Brystpress: "Brystpressmaskin",
+  Skulderpress: "Skulderpressmaskin",
+  "Pec Deck": "Pec Deck-maskin",
+  "Triceps Pushdown": "Tricepsmaskin",
+  Nedtrekk: "Nedtrekksmaskin",
+  "Sittende roing": "Ro-maskin",
+  "Rygghev-maskin": "Rygghev-maskin",
+  "Biceps Curl": "Biceps curl-maskin",
+  Beinpress: "Beinpressmaskin",
+  "Leg Curl": "Leg curl-maskin",
+  "Leg Extension": "Leg extension-maskin",
+  Magemaskin: "Magemaskin",
+  "Roterende magemaskin": "Roterende magemaskin"
+};
 const workouts = [
   {
     day: "Mandag",
@@ -30,7 +81,7 @@ const workouts = [
       { name: "Leg Curl", detail: "3 sett × 12 repetisjoner", image: "leg-curl", guide: "Legg puten bak anklene. Bøy knærne og trekk hælene mot setet." },
       { name: "Leg Extension", detail: "3 sett × 12 repetisjoner", image: "leg-extension", guide: "Sitt med puten foran anklene. Strekk knærne rolig, og senk beina kontrollert." },
       { name: "Magemaskin", detail: "3 sett × 15 repetisjoner", image: "ab-machine", guide: "Spenn magen og bøy overkroppen fremover. Unngå å dra med armene." },
-      { name: "Planke", detail: "3 × 30 sekunder", image: "plank", guide: "Støtt deg på underarmer og tær. Hold kroppen rett, spenn mage og sete.", timed: true }
+      { name: "Roterende magemaskin", detail: "3 sett × 12 repetisjoner per side", image: "ab-machine", guide: "Sitt med ryggen mot puten og hold overkroppen stabil mot motstanden. Roter kontrollert til én side, og gjenta til den andre." }
     ]
   }
 ];
@@ -45,6 +96,22 @@ function defaultWorkoutPlan() {
   ]));
 }
 
+function defaultWorkoutSchedule() {
+  return Object.fromEntries(workouts.map((workout) => [workout.day, workout.day]));
+}
+
+function normalizeWorkoutSchedule(savedSchedule) {
+  const schedule = {};
+  workouts.forEach((workout) => {
+    const savedDay = savedSchedule?.[workout.day];
+    const day = weekdays.includes(savedDay)
+      ? savedDay
+      : workout.day;
+    schedule[workout.day] = day;
+  });
+  return schedule;
+}
+
 function normalizeWorkoutPlan(savedPlan) {
   const defaults = defaultWorkoutPlan();
   if (!savedPlan || typeof savedPlan !== "object" || Array.isArray(savedPlan)) return defaults;
@@ -54,8 +121,13 @@ function normalizeWorkoutPlan(savedPlan) {
   return Object.fromEntries(workouts.map((workout) => {
     const savedExercises = savedPlan[workout.day];
     if (!Array.isArray(savedExercises)) return [workout.day, defaults[workout.day]];
+    const updatedExercises = savedExercises.map((exercise) => {
+      if (workout.day !== "Fredag" || exercise?.id !== "Fredag-4" || exercise.name !== "Planke") return exercise;
+      const replacement = defaults.Fredag.find((item) => item.name === "Roterende magemaskin");
+      return { ...replacement, id: exercise.id };
+    });
     const usedIds = new Set();
-    const exercises = savedExercises.filter((exercise) =>
+    const exercises = updatedExercises.filter((exercise) =>
       exercise && typeof exercise === "object" && !Array.isArray(exercise) &&
       typeof exercise.id === "string" && exercise.id.length > 0 && exercise.id.length <= 100 &&
       typeof exercise.name === "string" && exercise.name.trim().length > 0 && exercise.name.length <= 60 &&
@@ -94,11 +166,31 @@ function workoutExerciseKey(day, exercise) {
   return `${day}-${exercise.id}`;
 }
 
+function migrateCompletedWorkouts(completed, workoutPlan) {
+  return Object.entries(completed).flatMap(([date, entries]) => {
+    if (!isValidStoredDate(date) || !Array.isArray(entries)) return [];
+    return workouts
+      .filter((workout) => {
+        const exercises = workoutPlan[workout.day];
+        return exercises.length > 0 && exercises.every((exercise) =>
+          entries.includes(workoutExerciseKey(workout.day, exercise))
+        );
+      })
+      .map((workout) => ({
+        id: `legacy-${date}-${workout.day}`,
+        workoutDay: workout.day,
+        date,
+        createdAt: new Date(`${date}T12:00:00`).toISOString()
+      }));
+  });
+}
+
 let state = loadState();
 let installPrompt = null;
 let toastTimer;
 let photoObjectUrls = [];
 let selectedStrengthExercise = "Brystpress";
+const selectedWorkoutDates = {};
 let restTimerInterval = null;
 let restTimerEnd = null;
 let editingRecord = null;
@@ -112,14 +204,20 @@ function loadState() {
     if (weights.length === 0 && legacyWeight && Number.isFinite(Number(legacyWeight))) {
       weights.push({ date: localDate(), value: Number(legacyWeight) });
     }
+    const workoutPlan = normalizeWorkoutPlan(saved.workoutPlan);
+    const completed = migrateCompletedEntries(saved.completed);
     return {
       weights,
       exercises: Array.isArray(saved.exercises)
         ? saved.exercises.filter((item) => typeof item === "string")
         : Array.isArray(legacyExercises) ? legacyExercises.filter((item) => typeof item === "string") : [],
-      workoutPlan: normalizeWorkoutPlan(saved.workoutPlan),
+      workoutPlan,
+      workoutSchedule: normalizeWorkoutSchedule(saved.workoutSchedule),
       lifts: saved.lifts && typeof saved.lifts === "object" ? saved.lifts : {},
-      completed: migrateCompletedEntries(saved.completed),
+      completed,
+      workoutSessions: Array.isArray(saved.workoutSessions)
+        ? saved.workoutSessions.filter(isValidWorkoutSession)
+        : migrateCompletedWorkouts(completed, workoutPlan),
       cardioSessions: Array.isArray(saved.cardioSessions) ? saved.cardioSessions.filter((entry) =>
         entry && typeof entry.id === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date) &&
         cardioActivities.includes(entry.activity) &&
@@ -133,7 +231,7 @@ function loadState() {
     };
   } catch (error) {
     console.error("Kunne ikke lese lagrede treningsdata.", error);
-    return { weights: [], exercises: [], workoutPlan: defaultWorkoutPlan(), lifts: {}, completed: {}, cardioSessions: [], theme: "dark" };
+    return { weights: [], exercises: [], workoutPlan: defaultWorkoutPlan(), workoutSchedule: defaultWorkoutSchedule(), lifts: {}, completed: {}, workoutSessions: [], cardioSessions: [], theme: "dark" };
   }
 }
 
@@ -167,34 +265,22 @@ function renderWorkouts() {
   const today = new Intl.DateTimeFormat("no-NO", { weekday: "long" }).format(new Date());
   container.innerHTML = workouts.map((workout) => {
     const exercises = state.workoutPlan[workout.day];
+    const scheduledDay = state.workoutSchedule[workout.day];
+    const date = selectedWorkoutDates[workout.day] || localDate();
+    const weekdaysOptions = weekdays.map((weekday) =>
+      `<option value="${weekday}" ${weekday === scheduledDay ? "selected" : ""}>${weekday}</option>`
+    ).join("");
     const rows = exercises.map((exercise) => {
       const key = workoutExerciseKey(workout.day, exercise);
-      const checked = state.completed[localDate()]?.includes(key);
-      const date = localDate();
+      const checked = state.completed[date]?.includes(key);
       const savedWeight = state.lifts[date]?.[workout.day]?.[exercise.name] ?? "";
       const previousWeight = getPreviousLiftWeight(workout.day, exercise.name, date);
-      const exercisePhotos = {
-        Brystpress: "./images/brystpress-machine.png",
-        Skulderpress: "./images/skulderpress-machine.png",
-        "Pec Deck": "./images/pec-deck-machine.png",
-        "Triceps Pushdown": "./images/triceps-machine.png",
-        Nedtrekk: "./images/nedtrekk-machine.png",
-        "Sittende roing": "./images/roing-machine.png"
-      };
-      const exercisePhotoAlt = {
-        Brystpress: "Brystpressmaskin",
-        Skulderpress: "Skulderpressmaskin",
-        "Pec Deck": "Pec Deck-maskin",
-        "Triceps Pushdown": "Tricepsmaskin",
-        Nedtrekk: "Nedtrekksmaskin",
-        "Sittende roing": "Ro-maskin"
-      };
       const exercisePhoto = exercisePhotos[exercise.name];
       return `<li class="exercise">
         ${exercisePhoto
           ? `<img class="exercise-art" src="${exercisePhoto}" alt="${exercisePhotoAlt[exercise.name]}">`
           : exercise.image
-          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=22#${escapeHtml(exercise.image)}"></use></svg>`
+          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=35#${escapeHtml(exercise.image)}"></use></svg>`
           : '<span class="exercise-art exercise-art-placeholder" aria-hidden="true">🏋️</span>'}
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
@@ -203,8 +289,108 @@ function renderWorkouts() {
         <button type="button" class="remove-plan-exercise" data-remove-plan-day="${escapeHtml(workout.day)}" data-remove-plan-id="${escapeHtml(exercise.id)}" aria-label="Fjern ${escapeHtml(exercise.name)} fra ${escapeHtml(workout.day)}">Fjern</button>
       </li>`;
     }).join("");
-    return `<section class="card workout-card"><div class="workout-heading"><div><span class="day-label">${workout.day}</span><h2>${escapeHtml(workout.title)}</h2></div>${workout.day.toLowerCase() === today ? '<span class="today-label">I dag</span>' : ""}</div>${rows ? `<ul class="exercise-list">${rows}</ul>` : '<p class="exercise-empty">Ingen øvelser ennå. Legg til en øvelse i skjemaet nedenfor.</p>'}</section>`;
+    return `<section class="card workout-card" data-workout-card="${workout.day}"><div class="workout-heading"><div><span class="day-label">${scheduledDay}${scheduledDay.toLowerCase() === today ? " · I dag" : ""}</span><h2>${escapeHtml(workout.title)}</h2></div><label class="workout-schedule-picker">Treningsdag<select data-workout-schedule="${workout.day}" aria-label="Velg ukedag for ${escapeHtml(workout.title)}">${weekdaysOptions}</select></label></div><div class="workout-log-controls"><label>Dato for økten<input type="date" data-workout-date="${workout.day}" value="${date}" max="${localDate()}"></label><button type="button" data-save-workout="${workout.day}">Lagre utført økt</button></div>${rows ? `<ul class="exercise-list">${rows}</ul>` : '<p class="exercise-empty">Ingen øvelser ennå. Legg til en øvelse i skjemaet nedenfor.</p>'}</section>`;
   }).join("");
+}
+
+function renderWorkoutDaySelectors() {
+  const planDay = document.querySelector("#planExerciseDay");
+  const selectedPlanDay = planDay.value;
+  planDay.replaceChildren(...workouts.map((workout) => {
+    const option = document.createElement("option");
+    option.value = workout.day;
+    option.textContent = `${state.workoutSchedule[workout.day]} · ${workout.title}`;
+    option.selected = workout.day === selectedPlanDay;
+    return option;
+  }));
+
+  const photoWorkout = document.querySelector("#photoWorkout");
+  const selectedPhotoWorkout = photoWorkout.value;
+  photoWorkout.replaceChildren(new Option("Egen fremgang", "Egen fremgang"), ...workouts.map((workout) => {
+    const option = document.createElement("option");
+    option.value = workout.day;
+    option.textContent = state.workoutSchedule[workout.day];
+    option.selected = workout.day === selectedPhotoWorkout;
+    return option;
+  }));
+}
+
+function saveWorkoutSession(workoutDay, date) {
+  const workout = workouts.find((item) => item.day === workoutDay);
+  if (!workout || !isValidStoredDate(date)) {
+    showToast("Velg en gyldig treningsdato som ikke er i fremtiden.");
+    return;
+  }
+  const exercises = state.workoutPlan[workoutDay];
+  if (exercises.length === 0) {
+    showToast("Legg minst én øvelse til i økten før du lagrer den.");
+    return;
+  }
+  if (!Array.isArray(state.completed[date])) state.completed[date] = [];
+  exercises.forEach((exercise) => {
+    const key = workoutExerciseKey(workoutDay, exercise);
+    if (!state.completed[date].includes(key)) state.completed[date].push(key);
+  });
+  state.workoutSessions.push({
+    id: typeof crypto.randomUUID === "function"
+      ? `workout-${crypto.randomUUID()}`
+      : `workout-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    workoutDay,
+    date,
+    createdAt: new Date().toISOString()
+  });
+  if (!saveState()) return;
+  renderWorkouts();
+  renderWorkoutHistory();
+  renderStats();
+  showToast(`${workout.title} er lagret for ${formatDate(date)}.`);
+}
+
+function renderWorkoutHistory() {
+  const history = document.querySelector("#workoutHistory");
+  history.replaceChildren();
+  const sessions = [...state.workoutSessions].sort((first, second) =>
+    second.date.localeCompare(first.date) ||
+    (second.createdAt || "").localeCompare(first.createdAt || "")
+  );
+  if (sessions.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "cardio-empty";
+    empty.textContent = "Ingen treningsøkter er lagret ennå.";
+    history.append(empty);
+    return;
+  }
+  sessions.forEach((session) => {
+    const workout = workouts.find((item) => item.day === session.workoutDay);
+    const groupClass = groupClasses.find((item) => item.name === session.groupClass);
+    if (!workout && !groupClass) return;
+    const row = document.createElement("li");
+    row.className = "workout-history-entry";
+    const details = document.createElement("div");
+    details.className = "workout-history-details";
+    const sessionTitle = groupClass ? groupClass.name : workout.title;
+    const title = document.createElement("strong");
+    title.textContent = sessionTitle;
+    const date = document.createElement("time");
+    date.dateTime = session.date;
+    date.textContent = formatDate(session.date);
+    if (groupClass) {
+      const category = document.createElement("span");
+      category.className = "workout-history-category";
+      category.textContent = `Gruppetime · ${groupClass.category}`;
+      details.append(title, category, date);
+    } else {
+      details.append(title, date);
+    }
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove-cardio";
+    remove.dataset.removeWorkoutSession = session.id;
+    remove.textContent = "Slett";
+    remove.setAttribute("aria-label", `Slett ${sessionTitle} fra ${formatDate(session.date)}`);
+    row.append(details, remove);
+    history.append(row);
+  });
 }
 
 function getPreviousLiftWeight(day, exercise, beforeDate) {
@@ -563,24 +749,18 @@ function drawCardioChart(container, history, activity, periodDays) {
 }
 
 function renderStats() {
-  const count = Object.entries(state.completed).reduce((total, [date, entries]) => {
-    if (!Array.isArray(entries)) return total;
-    return total + workouts.filter((workout) =>
-      state.workoutPlan[workout.day].length > 0 &&
-      state.workoutPlan[workout.day].every((exercise) =>
-        entries.includes(workoutExerciseKey(workout.day, exercise))
-      )
-    ).length;
-  }, 0);
+  const count = state.workoutSessions.length;
   document.querySelector("#workoutCount").textContent = String(count);
   document.querySelector("#progressWorkoutCount").textContent = String(count);
   const day = new Intl.DateTimeFormat("no-NO", { weekday: "long" }).format(new Date());
-  const todaysWorkout = workouts.find((workout) => workout.day.toLowerCase() === day);
-  document.querySelector("#todayWorkout").textContent = todaysWorkout ? todaysWorkout.day : "Hviledag";
+  const todaysWorkout = workouts.find((workout) => state.workoutSchedule[workout.day].toLowerCase() === day);
+  document.querySelector("#todayWorkout").textContent = todaysWorkout ? state.workoutSchedule[todaysWorkout.day] : "Hviledag";
 }
 
 function render() {
+  renderWorkoutDaySelectors();
   renderWorkouts();
+  renderWorkoutHistory();
   renderCardioSessions();
   renderExercises();
   renderWeights();
@@ -819,6 +999,34 @@ function isValidStoredDate(date) {
   return Number.isFinite(parsed.getTime()) && localDate(parsed) === date && date <= localDate();
 }
 
+function isValidWorkoutSession(session) {
+  return Boolean(session && typeof session.id === "string" && session.id.length > 0 &&
+    isValidStoredDate(session.date) &&
+    (session.createdAt === undefined ||
+      (typeof session.createdAt === "string" && Number.isFinite(Date.parse(session.createdAt)))) &&
+    (session.groupClass === undefined
+      ? workouts.some((item) => item.day === session.workoutDay)
+      : typeof session.groupClass === "string" &&
+        session.groupClass.length <= 100 &&
+        groupClasses.some((item) => item.name === session.groupClass) &&
+        session.workoutDay === undefined));
+}
+
+function validateWorkoutSchedule(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Sikkerhetskopien inneholder en ugyldig ukesplan.");
+  }
+  const schedule = {};
+  workouts.forEach((workout) => {
+    const day = value[workout.day];
+    if (!weekdays.includes(day)) {
+      throw new Error("Sikkerhetskopien inneholder en ugyldig treningsdag.");
+    }
+    schedule[workout.day] = day;
+  });
+  return schedule;
+}
+
 function validateBackup(payload) {
   if (!payload || payload.format !== "min-pt-backup" || payload.version !== 1 ||
       !payload.state || typeof payload.state !== "object" || !Array.isArray(payload.photos)) {
@@ -829,6 +1037,9 @@ function validateBackup(payload) {
   const workoutPlan = backup.workoutPlan === undefined
     ? defaultWorkoutPlan()
     : validateBackupWorkoutPlan(backup.workoutPlan);
+  const workoutSchedule = backup.workoutSchedule === undefined
+    ? defaultWorkoutSchedule()
+    : validateWorkoutSchedule(backup.workoutSchedule);
   if (!Array.isArray(backup.weights) || !Array.isArray(backup.exercises) ||
       !backup.lifts || typeof backup.lifts !== "object" || Array.isArray(backup.lifts) ||
       !backup.completed || typeof backup.completed !== "object" || Array.isArray(backup.completed) ||
@@ -867,6 +1078,15 @@ function validateBackup(payload) {
       throw new Error("Sikkerhetskopien inneholder en ugyldig øktregistrering.");
     }
   });
+  const completed = migrateCompletedEntries(backup.completed);
+  const workoutSessions = backup.workoutSessions === undefined
+    ? migrateCompletedWorkouts(completed, workoutPlan)
+    : backup.workoutSessions;
+  if (!Array.isArray(workoutSessions) || workoutSessions.some((session) =>
+    !isValidWorkoutSession(session) || session.id.length > 160
+  )) {
+    throw new Error("Sikkerhetskopien inneholder en ugyldig utført treningsøkt.");
+  }
   if (backup.cardioSessions.some((entry) => !entry || typeof entry.id !== "string" ||
       !isValidStoredDate(entry.date) ||
       !cardioActivities.includes(entry.activity) ||
@@ -907,8 +1127,10 @@ function validateBackup(payload) {
       weights: backup.weights,
       exercises: backup.exercises,
       workoutPlan,
+      workoutSchedule,
       lifts: backup.lifts,
-      completed: migrateCompletedEntries(backup.completed),
+      completed,
+      workoutSessions,
       cardioSessions: backup.cardioSessions,
       theme: backup.theme
     },
@@ -1172,7 +1394,8 @@ async function renderPhotos() {
     info.className = "photo-entry-info";
     const label = document.createElement("span");
     label.className = "photo-workout-label";
-    label.textContent = photo.workout;
+    const workout = workouts.find((item) => item.day === photo.workout);
+    label.textContent = workout ? state.workoutSchedule[workout.day] : photo.workout;
     const date = document.createElement("time");
     date.dateTime = photo.date;
     date.textContent = formatDate(photo.date);
@@ -1527,6 +1750,13 @@ document.querySelector("#planExerciseForm").addEventListener("submit", (event) =
 });
 
 document.querySelector("#workoutPlan").addEventListener("click", (event) => {
+  const saveButton = event.target.closest("[data-save-workout]");
+  if (saveButton) {
+    const workoutCard = saveButton.closest("[data-workout-card]");
+    const date = workoutCard?.querySelector("[data-workout-date]")?.value;
+    saveWorkoutSession(saveButton.dataset.saveWorkout, date);
+    return;
+  }
   const button = event.target.closest("[data-remove-plan-id]");
   if (!button) return;
   const { removePlanDay: day, removePlanId: id } = button.dataset;
@@ -1536,6 +1766,110 @@ document.querySelector("#workoutPlan").addEventListener("click", (event) => {
   saveState();
   render();
   showToast(`${exercise.name} er fjernet fra ${day}.`);
+});
+
+document.querySelector("#workoutPlan").addEventListener("change", (event) => {
+  const scheduleSelect = event.target.closest("[data-workout-schedule]");
+  if (scheduleSelect) {
+    const workoutDay = scheduleSelect.dataset.workoutSchedule;
+    const scheduledDay = scheduleSelect.value;
+    state.workoutSchedule[workoutDay] = scheduledDay;
+    if (!saveState()) return;
+    renderWorkoutDaySelectors();
+    renderWorkouts();
+    renderStats();
+    showToast(`${workouts.find((workout) => workout.day === workoutDay).title} er flyttet til ${scheduledDay}.`);
+    return;
+  }
+  const workoutDate = event.target.closest("[data-workout-date]");
+  if (workoutDate) {
+    selectedWorkoutDates[workoutDate.dataset.workoutDate] = workoutDate.value;
+    renderWorkouts();
+    return;
+  }
+  const weightInput = event.target.closest("[data-lift-weight]");
+  if (weightInput) {
+    const value = weightInput.value === "" ? null : Number(weightInput.value);
+    if (value !== null && (!Number.isFinite(value) || value < 0.5 || value > 1000)) {
+      showToast("Skriv inn en gyldig treningsvekt mellom 0,5 og 1000 kg.");
+      return;
+    }
+    const workoutCard = weightInput.closest("[data-workout-card]");
+    const date = workoutCard?.querySelector("[data-workout-date]")?.value;
+    if (!isValidStoredDate(date)) {
+      showToast("Velg en gyldig treningsdato som ikke er i fremtiden.");
+      return;
+    }
+    const { liftDay, liftExercise } = weightInput.dataset;
+    if (!state.lifts[date]) state.lifts[date] = {};
+    if (!state.lifts[date][liftDay]) state.lifts[date][liftDay] = {};
+    if (value === null) {
+      delete state.lifts[date][liftDay][liftExercise];
+      if (Object.keys(state.lifts[date][liftDay]).length === 0) delete state.lifts[date][liftDay];
+      if (Object.keys(state.lifts[date]).length === 0) delete state.lifts[date];
+    } else {
+      state.lifts[date][liftDay][liftExercise] = value;
+    }
+    saveState();
+    renderStrengthProgress();
+    showToast(value === null ? "Vektregistreringen er fjernet." : `Lagret: ${formatWeight(value)} kg for ${liftExercise}.`);
+    return;
+  }
+  const checkbox = event.target.closest("[data-workout]");
+  if (!checkbox) return;
+  const workoutCard = checkbox.closest("[data-workout-card]");
+  const date = workoutCard?.querySelector("[data-workout-date]")?.value;
+  if (!isValidStoredDate(date)) {
+    showToast("Velg en gyldig treningsdato som ikke er i fremtiden.");
+    renderWorkouts();
+    return;
+  }
+  if (!Array.isArray(state.completed[date])) state.completed[date] = [];
+  state.completed[date] = state.completed[date].filter((key) => key !== checkbox.dataset.workout);
+  if (checkbox.checked) state.completed[date].push(checkbox.dataset.workout);
+  if (!state.completed[date].length) delete state.completed[date];
+  saveState();
+  renderStats();
+});
+
+document.querySelector("#extraWorkoutForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveWorkoutSession(
+    document.querySelector("#extraWorkoutDay").value,
+    document.querySelector("#extraWorkoutDate").value
+  );
+});
+
+document.querySelector("#groupWorkoutForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const groupClass = document.querySelector("#groupClass").value;
+  const date = document.querySelector("#groupWorkoutDate").value;
+  if (!groupClasses.some((item) => item.name === groupClass) || !isValidStoredDate(date)) {
+    showToast("Velg en gruppetime og en gyldig dato som ikke er i fremtiden.");
+    return;
+  }
+  state.workoutSessions.push({
+    id: typeof crypto.randomUUID === "function"
+      ? `group-${crypto.randomUUID()}`
+      : `group-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    groupClass,
+    date,
+    createdAt: new Date().toISOString()
+  });
+  if (!saveState()) return;
+  renderWorkoutHistory();
+  renderStats();
+  showToast(`${groupClass} er lagret for ${formatDate(date)}.`);
+});
+
+document.querySelector("#workoutHistory").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-remove-workout-session]");
+  if (!button) return;
+  state.workoutSessions = state.workoutSessions.filter((session) => session.id !== button.dataset.removeWorkoutSession);
+  if (!saveState()) return;
+  renderWorkoutHistory();
+  renderStats();
+  showToast("Treningsøkten er slettet fra historikken.");
 });
 
 document.querySelector("#exerciseForm").addEventListener("submit", (event) => {
@@ -1558,40 +1892,6 @@ document.querySelector("#customExercises").addEventListener("click", (event) => 
   renderExercises();
 });
 
-document.querySelector("#workoutPlan").addEventListener("change", (event) => {
-  const weightInput = event.target.closest("[data-lift-weight]");
-  if (weightInput) {
-    const value = weightInput.value === "" ? null : Number(weightInput.value);
-    if (value !== null && (!Number.isFinite(value) || value < 0.5 || value > 1000)) {
-      showToast("Skriv inn en gyldig treningsvekt mellom 0,5 og 1000 kg.");
-      return;
-    }
-    const date = localDate();
-    const { liftDay, liftExercise } = weightInput.dataset;
-    if (!state.lifts[date]) state.lifts[date] = {};
-    if (!state.lifts[date][liftDay]) state.lifts[date][liftDay] = {};
-    if (value === null) {
-      delete state.lifts[date][liftDay][liftExercise];
-      if (Object.keys(state.lifts[date][liftDay]).length === 0) delete state.lifts[date][liftDay];
-      if (Object.keys(state.lifts[date]).length === 0) delete state.lifts[date];
-    } else {
-      state.lifts[date][liftDay][liftExercise] = value;
-    }
-    saveState();
-    showToast(value === null ? "Vektregistreringen er fjernet." : `Lagret: ${formatWeight(value)} kg for ${liftExercise}.`);
-    return;
-  }
-  const checkbox = event.target.closest("[data-workout]");
-  if (!checkbox) return;
-  const date = localDate();
-  if (!Array.isArray(state.completed[date])) state.completed[date] = [];
-  state.completed[date] = state.completed[date].filter((key) => key !== checkbox.dataset.workout);
-  if (checkbox.checked) state.completed[date].push(checkbox.dataset.workout);
-  if (!state.completed[date].length) delete state.completed[date];
-  saveState();
-  renderStats();
-});
-
 document.querySelector("#themeToggle").addEventListener("change", (event) => {
   state.theme = event.target.checked ? "dark" : "light";
   document.documentElement.dataset.theme = state.theme;
@@ -1611,7 +1911,10 @@ document.querySelector("#clearData").addEventListener("click", async () => {
   state.lifts = {};
   state.exercises = [];
   state.workoutPlan = defaultWorkoutPlan();
+  state.workoutSchedule = defaultWorkoutSchedule();
   state.completed = {};
+  state.workoutSessions = [];
+  Object.keys(selectedWorkoutDates).forEach((day) => delete selectedWorkoutDates[day]);
   state.cardioSessions = [];
   localStorage.removeItem("weight");
   localStorage.removeItem("exercises");
@@ -1627,6 +1930,10 @@ document.querySelector("#photoDate").value = localDate();
 document.querySelector("#photoDate").max = localDate();
 document.querySelector("#cardioDate").value = localDate();
 document.querySelector("#cardioDate").max = localDate();
+document.querySelector("#extraWorkoutDate").value = localDate();
+document.querySelector("#extraWorkoutDate").max = localDate();
+document.querySelector("#groupWorkoutDate").value = localDate();
+document.querySelector("#groupWorkoutDate").max = localDate();
 document.querySelector("#photoInput").addEventListener("change", async (event) => {
   const input = event.currentTarget;
   const file = input.files?.[0];
@@ -1737,7 +2044,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=22")
+    navigator.serviceWorker.register("./service-worker.js?v=35")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }

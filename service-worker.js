@@ -1,18 +1,25 @@
-const CACHE_NAME = "min-pt-cache-v22";
+const CACHE_NAME = "min-pt-cache-v35";
 const APP_FILES = [
-  "./?v=22",
-  "./index.html?v=22",
-  "./style.css?v=22",
-  "./app.js?v=22",
-  "./manifest.json?v=22",
-  "./service-worker.js?v=22",
-  "./images/exercises.svg?v=22",
+  "./?v=35",
+  "./index.html?v=35",
+  "./style.css?v=35",
+  "./app.js?v=35",
+  "./manifest.json?v=35",
+  "./service-worker.js?v=35",
+  "./images/exercises.svg?v=35",
   "./images/brystpress-machine.png",
   "./images/skulderpress-machine.png",
   "./images/pec-deck-machine.png",
   "./images/triceps-machine.png",
   "./images/nedtrekk-machine.png",
   "./images/roing-machine.png",
+  "./images/back-extension-machine.png",
+  "./images/biceps-curl-machine.png",
+  "./images/leg-press-machine.png",
+  "./images/leg-curl-machine.png",
+  "./images/leg-extension-machine.png",
+  "./images/ab-machine.png",
+  "./images/rotating-ab-machine.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];

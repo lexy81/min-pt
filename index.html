@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=22">
+  <link rel="manifest" href="manifest.json?v=35">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=22">
-  <script src="app.js?v=22" defer></script>
+  <link rel="stylesheet" href="style.css?v=35">
+  <script src="app.js?v=35" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -89,6 +89,68 @@
         <ul id="cardioHistory" class="cardio-history" aria-live="polite"></ul>
       </section>
       <div id="workoutPlan" class="workout-plan"></div>
+      <section class="card extra-workout-card">
+        <h2>Registrer ekstra økt</h2>
+        <p class="subtle">Velg en av de tre øktene og datoen du trente, for eksempel lørdag.</p>
+        <form id="extraWorkoutForm" class="extra-workout-form">
+          <label>Økt
+            <select id="extraWorkoutDay" required>
+              <option value="Mandag">Bryst, skuldre og triceps</option>
+              <option value="Onsdag">Rygg og biceps</option>
+              <option value="Fredag">Bein og mage</option>
+            </select>
+          </label>
+          <label>Dato
+            <input type="date" id="extraWorkoutDate" required>
+          </label>
+          <button type="submit">Lagre ekstra økt</button>
+        </form>
+      </section>
+      <section class="card group-workout-card">
+        <h2>Registrer gruppetime</h2>
+        <p class="subtle">Velg timen du deltok på, og datoen fra kalenderen. <a href="https://plankebyentrening.no/gruppetrening/" target="_blank" rel="noopener noreferrer">Se timeplan og beskrivelser på Plankebyen Trening</a>.</p>
+        <form id="groupWorkoutForm" class="group-workout-form">
+          <label>Gruppetime
+            <select id="groupClass" required>
+              <optgroup label="Kropp &amp; sjel">
+                <option>Yoga myk og rolig</option>
+                <option>Pust &amp; bekkenbunn</option>
+                <option>Lymph Flow</option>
+                <option>Pilates</option>
+              </optgroup>
+              <optgroup label="For alle">
+                <option>Voksen dans og bevegelse</option>
+                <option>Stram – sett og repetisjoner</option>
+                <option>Stram – styrke og mobilitet</option>
+                <option>Løpesterk</option>
+                <option>Overkropp</option>
+                <option>Core</option>
+                <option>Mage, rumpe og lår</option>
+                <option>Voksen styrke og stabilitet</option>
+              </optgroup>
+              <optgroup label="Litt trent">
+                <option>Cross training</option>
+                <option>Styrke med stang</option>
+                <option>Løp</option>
+                <option>Spinn</option>
+              </optgroup>
+              <optgroup label="Spesialtimer">
+                <option>Fredags Surprise</option>
+                <option>Spesialtime: dans</option>
+              </optgroup>
+            </select>
+          </label>
+          <label>Dato du deltok
+            <input type="date" id="groupWorkoutDate" required>
+          </label>
+          <button type="submit">Lagre gruppetime</button>
+        </form>
+      </section>
+      <section class="card workout-history-card">
+        <h2>Utførte treningsøkter</h2>
+        <p class="subtle">Datoene på øktene du har lagret.</p>
+        <ul id="workoutHistory" class="workout-history" aria-live="polite"></ul>
+      </section>
       <section class="card plan-editor-card">
         <h2>Tilpass treningsplanen</h2>
         <p class="subtle">Legg en øvelse til på valgt dag, eller trykk «Fjern» ved en øvelse du ikke vil ha med.</p>
