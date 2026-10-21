@@ -124,7 +124,10 @@ function loadState() {
         entry && typeof entry.id === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date) &&
         cardioActivities.includes(entry.activity) &&
         Number.isFinite(entry.duration) && entry.duration > 0 && entry.duration <= 600 &&
-        Number.isFinite(entry.distance) && entry.distance >= 0 && entry.distance <= 1000
+        Number.isFinite(entry.distance) && entry.distance >= 0 && entry.distance <= 1000 &&
+        isOptionalNumberInRange(entry.speed, 0.1, 100) &&
+        isOptionalNumberInRange(entry.incline, 0, 100) &&
+        isOptionalIntegerInRange(entry.paceSeconds, 1, 5999)
       ) : [],
       theme: saved.theme === "light" ? "light" : "dark"
     };
@@ -172,7 +175,7 @@ function renderWorkouts() {
       const previousWeight = getPreviousLiftWeight(workout.day, exercise.name, date);
       return `<li class="exercise">
         ${exercise.image
-          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=15#${escapeHtml(exercise.image)}"></use></svg>`
+          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=16#${escapeHtml(exercise.image)}"></use></svg>`
           : '<span class="exercise-art exercise-art-placeholder" aria-hidden="true">🏋️</span>'}
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
@@ -593,6 +596,11 @@ function renderCardioSessions() {
     date.textContent = formatDate(session.date);
     const measurements = document.createElement("span");
     measurements.textContent = `${formatDuration(Math.round(session.duration * 60))} · ${formatDistance(session.distance)} km`;
+    const metrics = [];
+    if (session.speed !== undefined) metrics.push(`${formatDistance(session.speed)} km/t`);
+    if (session.incline !== undefined) metrics.push(`${formatDistance(session.incline)} % stigning`);
+    if (session.paceSeconds !== undefined) metrics.push(`${formatPace(session.paceSeconds)} min/km`);
+    if (metrics.length) measurements.textContent += ` · ${metrics.join(" · ")}`;
     details.append(activity, date, measurements);
     const remove = document.createElement("button");
     remove.type = "button";
@@ -633,10 +641,11 @@ function appendEditField(container, labelText, name, value, type, options = {}) 
   }
   input.name = name;
   input.required = options.required !== false;
-  input.value = String(value);
+  input.value = value === undefined || value === null ? "" : String(value);
   if (options.min !== undefined) input.min = String(options.min);
   if (options.max !== undefined) input.max = String(options.max);
   if (options.step !== undefined) input.step = String(options.step);
+  if (options.placeholder !== undefined) input.placeholder = options.placeholder;
   if (type === "date") input.max = localDate();
   label.append(input);
   container.append(label);
@@ -661,6 +670,9 @@ function openEditDialog(type, record) {
     appendEditField(fields, "Tid (minutter)", "minutes", Math.floor(durationSeconds / 60), "number", { min: 0, max: 600, step: 1, required: false });
     appendEditField(fields, "Sekunder", "seconds", durationSeconds % 60, "number", { min: 0, max: 59, step: 1, required: false });
     appendEditField(fields, "Distanse (km)", "distance", record.distance, "number", { min: 0, max: 1000, step: 0.01 });
+    appendEditField(fields, "Hastighet (km/t)", "speed", record.speed, "number", { min: 0.1, max: 100, step: 0.1, required: false, placeholder: "Valgfritt" });
+    appendEditField(fields, "Stigning (%)", "incline", record.incline, "number", { min: 0, max: 100, step: 0.1, required: false, placeholder: "Valgfritt" });
+    appendEditField(fields, "Tempo (min/km)", "pace", record.paceSeconds === undefined ? "" : formatPace(record.paceSeconds), "text", { required: false, placeholder: "f.eks. 06:30" });
     appendEditField(fields, "Dato", "date", record.date, "date");
   } else {
     title.textContent = `Rediger ${record.exercise}`;
@@ -840,7 +852,10 @@ function validateBackup(payload) {
       !isValidStoredDate(entry.date) ||
       !cardioActivities.includes(entry.activity) ||
       !Number.isFinite(entry.duration) || entry.duration <= 0 || entry.duration > 600 ||
-      !Number.isFinite(entry.distance) || entry.distance < 0 || entry.distance > 1000)) {
+      !Number.isFinite(entry.distance) || entry.distance < 0 || entry.distance > 1000 ||
+      !isOptionalNumberInRange(entry.speed, 0.1, 100) ||
+      !isOptionalNumberInRange(entry.incline, 0, 100) ||
+      !isOptionalIntegerInRange(entry.paceSeconds, 1, 5999))) {
     throw new Error("Sikkerhetskopien inneholder en ugyldig kondisjonsøkt.");
   }
 
@@ -1162,6 +1177,34 @@ function formatDistance(value) {
   return new Intl.NumberFormat("no-NO", { maximumFractionDigits: 2 }).format(value);
 }
 
+function formatPace(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function parsePace(value) {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  const match = trimmed.match(/^(\d{1,2}):([0-5]\d)$/);
+  if (!match) return null;
+  const seconds = Number(match[1]) * 60 + Number(match[2]);
+  return seconds >= 1 && seconds <= 5999 ? seconds : null;
+}
+
+function optionalNumber(value) {
+  const trimmed = String(value ?? "").trim();
+  return trimmed ? Number(trimmed) : undefined;
+}
+
+function isOptionalNumberInRange(value, min, max) {
+  return value === undefined || (typeof value === "number" && Number.isFinite(value) && value >= min && value <= max);
+}
+
+function isOptionalIntegerInRange(value, min, max) {
+  return value === undefined || (Number.isInteger(value) && value >= min && value <= max);
+}
+
 function formatDuration(totalSeconds) {
   const seconds = Math.round(totalSeconds);
   const minutes = Math.floor(seconds / 60);
@@ -1209,14 +1252,20 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   const seconds = Number(document.querySelector("#cardioSeconds").value);
   const durationSeconds = minutes * 60 + seconds;
   const distance = Number(document.querySelector("#cardioDistance").value);
+  const speed = optionalNumber(document.querySelector("#cardioSpeed").value);
+  const incline = optionalNumber(document.querySelector("#cardioIncline").value);
+  const paceSeconds = parsePace(document.querySelector("#cardioPace").value);
   const date = document.querySelector("#cardioDate").value;
   if (!cardioActivities.includes(activity) ||
       !Number.isInteger(minutes) || minutes < 0 || minutes > 600 ||
       !Number.isInteger(seconds) || seconds < 0 || seconds > 59 ||
       durationSeconds < 1 || durationSeconds > 36000 ||
       !Number.isFinite(distance) || distance < 0 || distance > 1000 ||
+      (speed !== undefined && (!Number.isFinite(speed) || speed < 0.1 || speed > 100)) ||
+      (incline !== undefined && (!Number.isFinite(incline) || incline < 0 || incline > 100)) ||
+      paceSeconds === null ||
       !date || date > localDate()) {
-    showToast("Skriv inn gyldig aktivitet, tid, distanse og dato.");
+    showToast("Skriv inn gyldige verdier for økten. Tempo må skrives som mm:ss.");
     return;
   }
   state.cardioSessions.push({
@@ -1224,6 +1273,9 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
     activity,
     duration: durationSeconds / 60,
     distance,
+    ...(speed === undefined ? {} : { speed }),
+    ...(incline === undefined ? {} : { incline }),
+    ...(paceSeconds === undefined ? {} : { paceSeconds }),
     date,
     createdAt: new Date().toISOString()
   });
@@ -1233,6 +1285,9 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   document.querySelector("#cardioMinutes").value = "";
   document.querySelector("#cardioSeconds").value = "";
   document.querySelector("#cardioDistance").value = "";
+  document.querySelector("#cardioSpeed").value = "";
+  document.querySelector("#cardioIncline").value = "";
+  document.querySelector("#cardioPace").value = "";
   document.querySelector("#cardioDate").value = localDate();
   showToast("Kondisjonsøkten er lagret.");
 });
@@ -1288,17 +1343,31 @@ document.querySelector("#editForm").addEventListener("submit", (event) => {
     const seconds = Number(values.get("seconds"));
     const durationSeconds = minutes * 60 + seconds;
     const distance = Number(values.get("distance"));
+    const speed = optionalNumber(values.get("speed"));
+    const incline = optionalNumber(values.get("incline"));
+    const paceSeconds = parsePace(String(values.get("pace") || ""));
     if (!cardioActivities.includes(activity) ||
         !Number.isInteger(minutes) || minutes < 0 || minutes > 600 ||
         !Number.isInteger(seconds) || seconds < 0 || seconds > 59 ||
         durationSeconds < 1 || durationSeconds > 36000 ||
-        !Number.isFinite(distance) || distance < 0 || distance > 1000) {
-      error.textContent = "Kontroller aktivitet, tid og distanse.";
+        !Number.isFinite(distance) || distance < 0 || distance > 1000 ||
+        (speed !== undefined && (!Number.isFinite(speed) || speed < 0.1 || speed > 100)) ||
+        (incline !== undefined && (!Number.isFinite(incline) || incline < 0 || incline > 100)) ||
+        paceSeconds === null) {
+      error.textContent = "Kontroller tid, distanse, hastighet, stigning og tempo (mm:ss).";
       return;
     }
     const session = state.cardioSessions.find((entry) => entry.id === editingRecord.id);
     if (!session) return;
-    Object.assign(session, { activity, duration: durationSeconds / 60, distance, date });
+    Object.assign(session, {
+      activity,
+      duration: durationSeconds / 60,
+      distance,
+      speed,
+      incline,
+      paceSeconds,
+      date
+    });
   } else {
     const value = Number(values.get("value"));
     if (!Number.isFinite(value) || value < 0.5 || value > 1000) {
@@ -1649,7 +1718,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=15")
+    navigator.serviceWorker.register("./service-worker.js?v=16")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }

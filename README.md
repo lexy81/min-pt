@@ -16,7 +16,7 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 
 - Treningsprogram for mandag, onsdag og fredag med avkryssing av øvelser
 - Tilpass treningsplanen ved å legge til øvelser på valgt dag eller fjerne dem
-- Oppvarmings- og kondisjonslogg for tredemølle, sykling, gåtur, ellipsemaskin og stakemaskin med tid i minutter og sekunder, distanse og dato
+- Oppvarmings- og kondisjonslogg for tredemølle, sykling, gåtur, ellipsemaskin og stakemaskin med tid i minutter og sekunder, distanse, hastighet, stigning og tempo per kilometer
 - Kondisjonsgraf med oppsummering for siste 7 eller 30 dager
 - Hvileklokke med valgbare pauser mellom sett
 - Rediger tidligere kroppsvekt-, kondisjons- og løftevektregistreringer
