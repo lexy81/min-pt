@@ -15,11 +15,12 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 ## Funksjoner
 
 - Tre treningsøkter med justerbare ukedager, avkryssing av øvelser og datoført treningshistorikk
+- Naviger mellom oversikt, trening, progresjon, kroppsvekt, bilder og innstillinger via en fast menylinje øverst
 - Registrer ekstra treningsøkter på valgfri dato, også på dager utenfor den faste ukeplanen
 - Registrer gruppetimer fra Plankebyen Trenings timebeskrivelser og velg dato i kalenderen
 - Se gruppetime-statistikk med antall deltakelser, variasjon og mest besøkte time
 - Tilpass treningsplanen ved å legge til øvelser på valgt dag eller fjerne dem
-- Oppvarmings- og kondisjonslogg for tredemølle, sykling, gåtur, ellipsemaskin og stakemaskin med tid i minutter og sekunder, distanse, hastighet, stigning og tempo per kilometer
+- Oppvarmings- og kondisjonslogg for tredemølle, sykling, gåtur, ellipsemaskin og stakemaskin med tid i minutter og sekunder; legg til distanse, hastighet, stigning, tempo eller kommentar ved behov
 - Kondisjonsgraf med oppsummering for siste 7 eller 30 dager
 - Hvileklokke med valgbare pauser mellom sett
 - Rediger tidligere kroppsvekt-, kondisjons- og løftevektregistreringer

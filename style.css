@@ -10,7 +10,7 @@
   --border: #343434;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
 body {
   max-width: 880px;
   min-height: 100vh;
@@ -23,14 +23,16 @@ body {
 }
 body, button, input { font-family: Arial, sans-serif; }
 button, input { font-size: 1rem; }
-.site-header { margin: 4px 0 30px; }
+.site-header { margin: 4px 0 12px; }
 .brand { display: flex; align-items: center; justify-content: center; gap: 12px; text-align: left; }
 .brand-icon { display: grid; width: 49px; height: 49px; place-items: center; border-radius: 15px; background: var(--green); font-size: 25px; }
 .brand h1 { margin: 0; font-size: 1.85rem; line-height: 1.1; }
 .brand p { margin: 4px 0 0; color: var(--muted); font-size: .94rem; }
-.main-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 7px; margin-top: 22px; }
+.main-nav { position: sticky; top: 0; z-index: 20; display: flex; justify-content: center; flex-wrap: nowrap; gap: 7px; margin: 0 0 18px; padding: 8px 0; overflow-x: auto; overscroll-behavior-x: contain; background: var(--background); scrollbar-width: thin; }
 .main-nav a { padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-size: .88rem; text-decoration: none; }
 .main-nav a:hover, .main-nav a:focus-visible { border-color: var(--green); color: var(--text); }
+.main-nav a[aria-current="page"] { border-color: var(--green); background: var(--green); color: #fff; }
+.page-section[hidden], #oversikt[hidden] { display: none !important; }
 main { display: grid; gap: 18px; }
 .card { padding: 18px; border: 1px solid #292929; border-radius: 12px; background: var(--surface); }
 .motivation { padding: 23px; }
@@ -104,7 +106,14 @@ h3 { margin: 0 0 5px; font-size: 1rem; }
 .cardio-card > h3 { margin-bottom: 4px; }
 .cardio-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
 .cardio-field { display: grid; gap: 5px; color: var(--muted); font-size: .8rem; font-weight: 700; }
-.cardio-field input, .cardio-field select { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.cardio-field input, .cardio-field select, .cardio-field textarea { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.cardio-field textarea { resize: vertical; }
+.cardio-extra-controls { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 9px; }
+.cardio-add-button, .cardio-remove-field { min-height: 43px; }
+.cardio-optional-fields { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.cardio-optional-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
+.cardio-optional-field[data-cardio-field="comment"] { grid-column: 1 / -1; }
+.cardio-entry-comment { color: var(--muted); font-size: .88rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .cardio-submit { grid-column: 1 / -1; min-height: 44px; }
 .cardio-history-heading { margin: 18px 0 4px; }
 .cardio-history { margin: 0; padding: 0; list-style: none; }
@@ -243,7 +252,8 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .edit-dialog-heading h2 { margin: 0; }
 .edit-fields { display: grid; gap: 12px; margin: 18px 0 10px; }
 .edit-field { display: grid; gap: 5px; color: var(--muted); font-size: .82rem; font-weight: 700; }
-.edit-field input, .edit-field select { width: 100%; min-height: 43px; padding: 9px 11px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.edit-field input, .edit-field select, .edit-field textarea { width: 100%; min-height: 43px; padding: 9px 11px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.edit-field textarea { resize: vertical; }
 .edit-error { min-height: 1.2em; color: #ffb4a9; font-size: .82rem; }
 .edit-dialog-actions { justify-content: flex-end; margin-top: 12px; }
 footer { padding: 24px 0 2px; color: #818181; text-align: center; font-size: .8rem; }
@@ -261,16 +271,16 @@ footer span { color: var(--green-light); }
 [data-theme="light"] .remove-exercise { color: var(--muted); }
 [data-theme="light"] .photo-field input, [data-theme="light"] .photo-field select { border-color: var(--border); background: #fff; }
 [data-theme="light"] .plan-exercise-field input, [data-theme="light"] .plan-exercise-field select { border-color: var(--border); background: #fff; }
-[data-theme="light"] .cardio-field input, [data-theme="light"] .cardio-field select { border-color: var(--border); background: #fff; }
+[data-theme="light"] .cardio-field input, [data-theme="light"] .cardio-field select, [data-theme="light"] .cardio-field textarea { border-color: var(--border); background: #fff; }
 [data-theme="light"] .group-workout-form select, [data-theme="light"] .group-workout-form input { border-color: var(--border); background: #fff; }
 [data-theme="light"] .workout-schedule-picker select, [data-theme="light"] .workout-log-controls input, [data-theme="light"] .extra-workout-form select, [data-theme="light"] .extra-workout-form input { border-color: var(--border); background: #fff; }
-[data-theme="light"] .cardio-progress .strength-picker select, [data-theme="light"] .group-class-progress .strength-picker select, [data-theme="light"] .edit-field input, [data-theme="light"] .edit-field select, [data-theme="light"] .rest-timer-controls select { border-color: var(--border); background: #fff; }
+[data-theme="light"] .cardio-progress .strength-picker select, [data-theme="light"] .group-class-progress .strength-picker select, [data-theme="light"] .edit-field input, [data-theme="light"] .edit-field select, [data-theme="light"] .edit-field textarea, [data-theme="light"] .rest-timer-controls select { border-color: var(--border); background: #fff; }
 [data-theme="light"] .backup-tools button, [data-theme="light"] .backup-import-button { background: #f0f1ed; }
 [data-theme="light"] .exercise-art { background: #e8f1e6; }
 @media (max-width: 560px) {
   body { padding: 17px 14px 32px; }
-  .site-header { margin-bottom: 23px; }
-  .main-nav { gap: 6px; margin-top: 17px; }
+  .site-header { margin-bottom: 8px; }
+  .main-nav { justify-content: flex-start; gap: 6px; margin-bottom: 14px; }
   .main-nav a { padding: 7px 9px; font-size: .78rem; }
   .card { padding: 15px; }
   .motivation { padding: 18px; }
@@ -293,6 +303,8 @@ footer span { color: var(--green-light); }
   .workout-log-controls { align-items: stretch; flex-direction: column; }
   .workout-log-controls input, .workout-log-controls button { width: 100%; }
   .cardio-form { grid-template-columns: 1fr; }
+  .cardio-optional-fields { grid-template-columns: 1fr; }
+  .cardio-extra-controls { grid-template-columns: minmax(0, 1fr) auto; }
   .cardio-submit { grid-column: auto; }
   .rest-timer { grid-template-columns: 1fr; }
   .rest-timer-controls { grid-template-columns: 1fr 1fr; }

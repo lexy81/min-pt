@@ -6,19 +6,19 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=37">
+  <link rel="manifest" href="manifest.json?v=39">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=37">
-  <script src="app.js?v=37" defer></script>
+  <link rel="stylesheet" href="style.css?v=39">
+  <script src="app.js?v=39" defer></script>
 </head>
 <body>
   <header class="site-header">
     <div class="brand"><span class="brand-icon" aria-hidden="true">💪</span><div><h1>Min PT</h1><p>Din personlige treningspartner</p></div></div>
-    <nav class="main-nav" aria-label="Hovedmeny">
-      <a href="#oversikt">Oversikt</a><a href="#trening">Trening</a><a href="#progresjon">Progresjon</a><a href="#bilder">Bilder</a><a href="#kroppsvekt">Kroppsvekt</a><a href="#innstillinger">Innstillinger</a>
-    </nav>
   </header>
+  <nav class="main-nav" aria-label="Hovedmeny">
+    <a href="#oversikt">Oversikt</a><a href="#trening">Trening</a><a href="#progresjon">Progresjon</a><a href="#bilder">Bilder</a><a href="#kroppsvekt">Kroppsvekt</a><a href="#innstillinger">Innstillinger</a>
+  </nav>
   <main>
     <section class="card motivation" id="oversikt">
       <p class="eyebrow">DIN PLAN, DITT TEMPO</p>
@@ -68,18 +68,20 @@
           <label class="cardio-field">Sekunder
             <input type="number" id="cardioSeconds" min="0" max="59" step="1" inputmode="numeric" placeholder="f.eks. 54">
           </label>
-          <label class="cardio-field">Distanse (km)
-            <input type="number" id="cardioDistance" min="0" max="1000" step="0.01" inputmode="decimal" placeholder="f.eks. 1,5" required>
-          </label>
-          <label class="cardio-field">Hastighet (km/t)
-            <input type="number" id="cardioSpeed" min="0.1" max="100" step="0.1" inputmode="decimal" placeholder="Valgfritt">
-          </label>
-          <label class="cardio-field">Stigning (%)
-            <input type="number" id="cardioIncline" min="0" max="100" step="0.1" inputmode="decimal" placeholder="Valgfritt">
-          </label>
-          <label class="cardio-field">Tempo (min/km)
-            <input type="text" id="cardioPace" inputmode="numeric" placeholder="f.eks. 06:30">
-          </label>
+          <div class="cardio-extra-controls">
+            <label class="cardio-field" for="cardioFieldSelect">Legg til opplysning
+              <select id="cardioFieldSelect">
+                <option value="">Velg opplysning</option>
+                <option value="distance">Distanse</option>
+                <option value="speed">Hastighet</option>
+                <option value="incline">Stigning</option>
+                <option value="pace">Tempo</option>
+                <option value="comment">Kommentar</option>
+              </select>
+            </label>
+            <button type="button" id="addCardioField" class="cardio-add-button">Legg til</button>
+          </div>
+          <div id="cardioOptionalFields" class="cardio-optional-fields" aria-live="polite"></div>
           <label class="cardio-field">Dato
             <input type="date" id="cardioDate" required>
           </label>
