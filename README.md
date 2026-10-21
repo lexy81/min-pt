@@ -21,7 +21,7 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 - Hvileklokke med valgbare pauser mellom sett
 - Rediger tidligere kroppsvekt-, kondisjons- og løftevektregistreringer
 - Eksporter og importer sikkerhetskopi med treningsbilder
-- Brystpress-, skulderpress- og Pec Deck-kortene viser bildene av maskinene
+- Brystpress-, skulderpress-, Pec Deck-, Triceps Pushdown- og Nedtrekk-kortene viser bildene av maskinene
 - Tydeligere, fargekodede treningsillustrasjoner med apparat, utøver og bevegelsesretning, pluss teknikkforklaring ved hver øvelse
 - Registrer løftevekt for hver styrkeøvelse, med forrige vekt som hint
 - Fremgangsgraf for løftevekt med valg av øvelse

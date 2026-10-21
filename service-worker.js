@@ -1,15 +1,17 @@
-const CACHE_NAME = "min-pt-cache-v19";
+const CACHE_NAME = "min-pt-cache-v21";
 const APP_FILES = [
-  "./?v=19",
-  "./index.html?v=19",
-  "./style.css?v=19",
-  "./app.js?v=19",
-  "./manifest.json?v=19",
-  "./service-worker.js?v=19",
-  "./images/exercises.svg?v=19",
+  "./?v=21",
+  "./index.html?v=21",
+  "./style.css?v=21",
+  "./app.js?v=21",
+  "./manifest.json?v=21",
+  "./service-worker.js?v=21",
+  "./images/exercises.svg?v=21",
   "./images/brystpress-machine.png",
   "./images/skulderpress-machine.png",
   "./images/pec-deck-machine.png",
+  "./images/triceps-machine.png",
+  "./images/nedtrekk-machine.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];

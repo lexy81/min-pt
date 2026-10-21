@@ -176,14 +176,23 @@ function renderWorkouts() {
       const exercisePhotos = {
         Brystpress: "./images/brystpress-machine.png",
         Skulderpress: "./images/skulderpress-machine.png",
-        "Pec Deck": "./images/pec-deck-machine.png"
+        "Pec Deck": "./images/pec-deck-machine.png",
+        "Triceps Pushdown": "./images/triceps-machine.png",
+        Nedtrekk: "./images/nedtrekk-machine.png"
+      };
+      const exercisePhotoAlt = {
+        Brystpress: "Brystpressmaskin",
+        Skulderpress: "Skulderpressmaskin",
+        "Pec Deck": "Pec Deck-maskin",
+        "Triceps Pushdown": "Tricepsmaskin",
+        Nedtrekk: "Nedtrekksmaskin"
       };
       const exercisePhoto = exercisePhotos[exercise.name];
       return `<li class="exercise">
         ${exercisePhoto
-          ? `<img class="exercise-art" src="${exercisePhoto}" alt="${escapeHtml(exercise.name)}maskin">`
+          ? `<img class="exercise-art" src="${exercisePhoto}" alt="${exercisePhotoAlt[exercise.name]}">`
           : exercise.image
-          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=19#${escapeHtml(exercise.image)}"></use></svg>`
+          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=21#${escapeHtml(exercise.image)}"></use></svg>`
           : '<span class="exercise-art exercise-art-placeholder" aria-hidden="true">🏋️</span>'}
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
@@ -1726,7 +1735,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=19")
+    navigator.serviceWorker.register("./service-worker.js?v=21")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }
