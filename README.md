@@ -15,7 +15,8 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 ## Funksjoner
 
 - Tre treningsøkter med justerbare ukedager, avkryssing av øvelser og datoført treningshistorikk
-- Naviger mellom oversikt, trening, progresjon, kroppsvekt, bilder og innstillinger via en fast menylinje øverst
+- Naviger mellom oversikt, trening, historikk, progresjon, kroppsvekt, bilder og innstillinger via en fast menylinje øverst
+- Se de tre nyeste styrke-, kondisjons- og gruppetimeøktene i en egen historikkfane, og utvid ved behov for eldre registreringer
 - Filtrer treningsdelen etter oppvarming/kondisjon, styrketrening eller gruppetimer
 - Legg til styrkeøvelser ved å velge øvelsesnavn fra en rullegardin med planøvelser og egne øvelser
 - Få apparatforslag, anbefalte sett/repetisjoner og enkle teknikkpåminnelser for bein, rumpe/lår, mage, bryst og rygg

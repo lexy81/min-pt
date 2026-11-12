@@ -1,5 +1,7 @@
 const STORAGE_KEY = "min-pt-app-v1";
 const PHOTO_DATABASE = "min-pt-media-v1";
+const visibleHistoryLimit = 3;
+const expandedHistoryLists = new Set();
 const cardioActivities = ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin", "Stakemaskin"];
 const cardioOptionalFields = {
   speed: { label: "Hastighet (km/t)", id: "cardioSpeed", type: "number", attributes: { min: "0.1", max: "100", step: "0.1", inputmode: "decimal", placeholder: "f.eks. 6,5" } },
@@ -460,16 +462,18 @@ function renderWorkoutHistory() {
   renderWorkoutHistoryList(
     document.querySelector("#workoutHistory"),
     sessions.filter((session) => !session.groupClass),
-    false
+    false,
+    "strength"
   );
   renderWorkoutHistoryList(
     document.querySelector("#groupWorkoutHistory"),
     sessions.filter((session) => session.groupClass),
-    true
+    true,
+    "groups"
   );
 }
 
-function renderWorkoutHistoryList(history, sessions, isGroupClassHistory) {
+function renderWorkoutHistoryList(history, sessions, isGroupClassHistory, historyType) {
   history.replaceChildren();
   if (!sessions.length) {
     const empty = document.createElement("li");
@@ -480,7 +484,10 @@ function renderWorkoutHistoryList(history, sessions, isGroupClassHistory) {
     history.append(empty);
     return;
   }
-  sessions.forEach((session) => {
+  const visibleSessions = expandedHistoryLists.has(historyType)
+    ? sessions
+    : sessions.slice(0, visibleHistoryLimit);
+  visibleSessions.forEach((session) => {
     const workout = workouts.find((item) => item.day === session.workoutDay);
     const groupClass = groupClasses.find((item) => item.name === session.groupClass);
     if (!workout && !groupClass) return;
@@ -511,6 +518,35 @@ function renderWorkoutHistoryList(history, sessions, isGroupClassHistory) {
     row.append(details, remove);
     history.append(row);
   });
+  appendHistoryToggle(history, historyType, sessions.length);
+}
+
+function appendHistoryToggle(list, historyType, total) {
+  if (total <= visibleHistoryLimit) return;
+  const row = document.createElement("li");
+  row.className = "history-toggle-row";
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "history-toggle";
+  button.dataset.toggleHistory = historyType;
+  button.textContent = expandedHistoryLists.has(historyType)
+    ? "Vis færre"
+    : `Vis alle ${total} økter`;
+  row.append(button);
+  list.append(row);
+}
+
+function toggleHistoryList(historyType) {
+  if (expandedHistoryLists.has(historyType)) {
+    expandedHistoryLists.delete(historyType);
+  } else {
+    expandedHistoryLists.add(historyType);
+  }
+  if (historyType === "cardio") {
+    renderCardioSessions();
+  } else {
+    renderWorkoutHistory();
+  }
 }
 
 function getPreviousLiftWeight(day, exercise, beforeDate) {
@@ -1470,7 +1506,10 @@ function renderCardioSessions() {
     history.append(empty);
     return;
   }
-  sessions.forEach((session) => {
+  const visibleSessions = expandedHistoryLists.has("cardio")
+    ? sessions
+    : sessions.slice(0, visibleHistoryLimit);
+  visibleSessions.forEach((session) => {
     const item = document.createElement("li");
     item.className = "cardio-entry";
     const details = document.createElement("div");
@@ -1512,6 +1551,7 @@ function renderCardioSessions() {
     item.append(details, actions);
     history.append(item);
   });
+  appendHistoryToggle(history, "cardio", sessions.length);
 }
 
 function appendEditField(container, labelText, name, value, type, options = {}) {
@@ -2237,7 +2277,7 @@ document.querySelector("#addCardioField").addEventListener("click", () => {
 });
 
 const pageNavigation = document.querySelector(".main-nav");
-const pageIds = new Set(["oversikt", "trening", "restitusjon", "progresjon", "bilder", "kroppsvekt", "innstillinger"]);
+const pageIds = new Set(["oversikt", "trening", "treningshistorikk", "restitusjon", "progresjon", "bilder", "kroppsvekt", "innstillinger"]);
 
 function showPage(pageId, updateHistory = false) {
   const activePage = pageIds.has(pageId) ? pageId : "oversikt";
@@ -2329,6 +2369,11 @@ document.querySelector("#recoveryWorkoutTip").addEventListener("click", (event) 
 });
 
 document.querySelector("#cardioHistory").addEventListener("click", (event) => {
+  const toggle = event.target.closest("[data-toggle-history]");
+  if (toggle) {
+    toggleHistoryList(toggle.dataset.toggleHistory);
+    return;
+  }
   const edit = event.target.closest("[data-edit-type]");
   if (edit) {
     handleHistoryEdit(event);
@@ -2706,6 +2751,11 @@ document.querySelector("#groupWorkoutForm").addEventListener("submit", (event) =
 });
 
 function handleWorkoutHistoryClick(event) {
+  const toggle = event.target.closest("[data-toggle-history]");
+  if (toggle) {
+    toggleHistoryList(toggle.dataset.toggleHistory);
+    return;
+  }
   const button = event.target.closest("[data-remove-workout-session]");
   if (!button) return;
   state.workoutSessions = state.workoutSessions.filter((session) => session.id !== button.dataset.removeWorkoutSession);
@@ -2890,7 +2940,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=67")
+    navigator.serviceWorker.register("./service-worker.js?v=68")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }

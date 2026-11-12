@@ -6,18 +6,18 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=67">
+  <link rel="manifest" href="manifest.json?v=68">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=67">
-  <script src="app.js?v=67" defer></script>
+  <link rel="stylesheet" href="style.css?v=68">
+  <script src="app.js?v=68" defer></script>
 </head>
 <body>
   <header class="site-header">
     <div class="brand"><span class="brand-icon" aria-hidden="true">💪</span><div><h1>Min PT</h1><p>Din personlige treningspartner</p></div></div>
   </header>
   <nav class="main-nav" aria-label="Hovedmeny">
-    <a href="#oversikt">Oversikt</a><a href="#trening">Trening</a><a href="#restitusjon">Restitusjon</a><a href="#progresjon">Progresjon</a><a href="#bilder">Bilder</a><a href="#kroppsvekt">Kroppsvekt</a><a href="#innstillinger">Innstillinger</a>
+    <a href="#oversikt">Oversikt</a><a href="#trening">Trening</a><a href="#treningshistorikk">Historikk</a><a href="#restitusjon">Restitusjon</a><a href="#progresjon">Progresjon</a><a href="#bilder">Bilder</a><a href="#kroppsvekt">Kroppsvekt</a><a href="#innstillinger">Innstillinger</a>
   </nav>
   <main>
     <section class="card motivation" id="oversikt">
@@ -79,8 +79,6 @@
             </label>
             <button type="submit" class="cardio-submit">Lagre kondisjonsøkt</button>
           </form>
-          <h4 class="cardio-history-heading">Tidligere økter</h4>
-          <ul id="cardioHistory" class="cardio-history" aria-live="polite"></ul>
         </section>
       </div>
       <div class="training-category" data-training-category="strength" hidden>
@@ -117,11 +115,6 @@
           </label>
           <button type="submit">Lagre ekstra økt</button>
         </form>
-        </section>
-        <section class="card workout-history-card">
-          <h2>Treningshistorikk</h2>
-          <p class="subtle">Styrkeøktene du har lagret.</p>
-          <ul id="workoutHistory" class="workout-history" aria-live="polite"></ul>
         </section>
         <section class="card plan-editor-card">
           <h2>Tilpass treningsplanen</h2>
@@ -248,12 +241,24 @@
           <button type="submit">Lagre gruppetime</button>
         </form>
         </section>
-        <section class="card workout-history-card">
-          <h2>Gruppetimehistorikk</h2>
-          <p class="subtle">Gruppetimene du har deltatt på.</p>
-          <ul id="groupWorkoutHistory" class="workout-history" aria-live="polite"></ul>
-        </section>
       </div>
+    </section>
+
+    <section id="treningshistorikk" class="page-section">
+      <div class="section-heading"><div><p class="eyebrow">ØKT FOR ØKT</p><h2>Treningshistorikk</h2></div></div>
+      <p class="subtle history-intro">De tre nyeste vises først i hver kategori. Utvid listen for å finne eldre økter; historikken din beholdes.</p>
+      <section class="card workout-history-card">
+        <h3>Styrkeøkter</h3>
+        <ul id="workoutHistory" class="workout-history" aria-live="polite"></ul>
+      </section>
+      <section class="card workout-history-card">
+        <h3>Kondisjonsøkter</h3>
+        <ul id="cardioHistory" class="cardio-history" aria-live="polite"></ul>
+      </section>
+      <section class="card workout-history-card">
+        <h3>Gruppetimer</h3>
+        <ul id="groupWorkoutHistory" class="workout-history" aria-live="polite"></ul>
+      </section>
     </section>
 
     <section id="restitusjon" class="page-section">

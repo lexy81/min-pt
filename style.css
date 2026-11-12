@@ -88,7 +88,9 @@ h3 { margin: 0 0 5px; font-size: 1rem; }
 .exercise-empty { margin: 14px 0 2px; color: var(--muted); font-size: .88rem; }
 .custom-card { margin-top: 13px; }
 .plan-editor-card { margin-top: 13px; }
-.extra-workout-card, .group-workout-card, .workout-history-card { margin-top: 13px; }
+.extra-workout-card, .group-workout-card { margin-top: 13px; }
+.history-intro { margin: -4px 0 14px; }
+.page-section > .workout-history-card { margin-top: 12px; }
 .extra-workout-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
 .extra-workout-form select, .extra-workout-form input { width: 100%; }
 .extra-workout-form button { grid-column: 1 / -1; }
@@ -102,6 +104,9 @@ h3 { margin: 0 0 5px; font-size: 1rem; }
 .workout-history-details { display: grid; gap: 2px; font-size: .83rem; }
 .workout-history-details time { color: var(--muted); }
 .workout-history-category { color: var(--green-light); font-size: .76rem; }
+.history-toggle-row { display: flex; justify-content: center; padding-top: 8px; }
+.history-toggle { padding: 8px 12px; background: transparent; color: var(--green-light); font-size: .84rem; }
+.history-toggle:hover { background: var(--surface-raised); }
 .plan-exercise-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
 .plan-exercise-field { display: grid; gap: 5px; color: var(--muted); font-size: .8rem; font-weight: 700; }
 .plan-exercise-field input, .plan-exercise-field select { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
@@ -156,6 +161,7 @@ h3 { margin: 0 0 5px; font-size: 1rem; }
 .cardio-entry-details { display: grid; gap: 2px; font-size: .83rem; }
 .cardio-entry-details strong { color: var(--text); }
 .cardio-entry-details time, .cardio-entry-details > span, .cardio-empty { color: var(--muted); }
+.cardio-history .history-toggle-row { border-bottom: 0; }
 .remove-cardio { flex: 0 0 auto; padding: 6px 9px; background: transparent; color: #ffb4a9; font-size: .8rem; }
 .remove-cardio:hover { background: #452523; }
 .cardio-empty { padding: 8px 0; font-size: .85rem; }
