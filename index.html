@@ -6,18 +6,18 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=39">
+  <link rel="manifest" href="manifest.json?v=67">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=39">
-  <script src="app.js?v=39" defer></script>
+  <link rel="stylesheet" href="style.css?v=67">
+  <script src="app.js?v=67" defer></script>
 </head>
 <body>
   <header class="site-header">
     <div class="brand"><span class="brand-icon" aria-hidden="true">💪</span><div><h1>Min PT</h1><p>Din personlige treningspartner</p></div></div>
   </header>
   <nav class="main-nav" aria-label="Hovedmeny">
-    <a href="#oversikt">Oversikt</a><a href="#trening">Trening</a><a href="#progresjon">Progresjon</a><a href="#bilder">Bilder</a><a href="#kroppsvekt">Kroppsvekt</a><a href="#innstillinger">Innstillinger</a>
+    <a href="#oversikt">Oversikt</a><a href="#trening">Trening</a><a href="#restitusjon">Restitusjon</a><a href="#progresjon">Progresjon</a><a href="#bilder">Bilder</a><a href="#kroppsvekt">Kroppsvekt</a><a href="#innstillinger">Innstillinger</a>
   </nav>
   <main>
     <section class="card motivation" id="oversikt">
@@ -33,7 +33,58 @@
 
     <section id="trening" class="page-section">
       <div class="section-heading"><div><p class="eyebrow">STYRKEPROGRAM</p><h2>Treningsplan</h2></div></div>
-      <section class="card rest-timer">
+      <div class="training-filters" role="group" aria-label="Filtrer treningsinnhold">
+        <button type="button" class="training-filter" data-training-filter="cardio" aria-pressed="true">Oppvarming og O2</button>
+        <button type="button" class="training-filter" data-training-filter="strength" aria-pressed="false">Styrketrening</button>
+        <button type="button" class="training-filter" data-training-filter="groups" aria-pressed="false">Gruppetimer</button>
+      </div>
+      <div class="training-category" data-training-category="cardio">
+        <section class="card cardio-card">
+          <h3>Oppvarming og kondisjon</h3>
+          <p class="subtle">Registrer tid og distanse på tredemølle, sykkel, gåtur, ellipsemaskin eller stakemaskin.</p>
+          <form id="cardioForm" class="cardio-form">
+            <label class="cardio-field">Aktivitet
+              <select id="cardioActivity" required>
+                <option value="Tredemølle">Tredemølle</option>
+                <option value="Sykling">Sykling</option>
+                <option value="Gåtur">Gåtur</option>
+                <option value="Ellipsemaskin">Ellipsemaskin</option>
+                <option value="Stakemaskin">Stakemaskin</option>
+              </select>
+            </label>
+            <label class="cardio-field">Tid (minutter)
+              <input type="number" id="cardioMinutes" min="0" max="600" step="1" inputmode="numeric" placeholder="f.eks. 1">
+            </label>
+            <label class="cardio-field">Sekunder
+              <input type="number" id="cardioSeconds" min="0" max="59" step="1" inputmode="numeric" placeholder="f.eks. 54">
+            </label>
+            <label class="cardio-field">Distanse (km)
+              <input type="number" id="cardioDistance" min="0" max="1000" step="0.01" inputmode="decimal" placeholder="f.eks. 1,5" required>
+            </label>
+            <div class="cardio-extra-controls">
+              <label class="cardio-field" for="cardioFieldSelect">Legg til opplysning
+                <select id="cardioFieldSelect">
+                  <option value="">Velg opplysning</option>
+                  <option value="speed">Hastighet</option>
+                  <option value="incline">Stigning</option>
+                  <option value="pace">Tempo</option>
+                  <option value="comment">Kommentar</option>
+                </select>
+              </label>
+              <button type="button" id="addCardioField" class="cardio-add-button">Legg til</button>
+            </div>
+            <div id="cardioOptionalFields" class="cardio-optional-fields" aria-live="polite"></div>
+            <label class="cardio-field">Dato
+              <input type="date" id="cardioDate" required>
+            </label>
+            <button type="submit" class="cardio-submit">Lagre kondisjonsøkt</button>
+          </form>
+          <h4 class="cardio-history-heading">Tidligere økter</h4>
+          <ul id="cardioHistory" class="cardio-history" aria-live="polite"></ul>
+        </section>
+      </div>
+      <div class="training-category" data-training-category="strength" hidden>
+        <section class="card rest-timer">
         <div><h3>Hvile mellom sett</h3><p class="subtle">Ta en pause før neste sett.</p></div>
         <form id="restTimerForm" class="rest-timer-controls">
           <label for="restDuration">Pauselengde</label>
@@ -48,50 +99,9 @@
           <button type="button" id="stopRestTimer" class="button-secondary" disabled>Stopp</button>
           <output id="restTimerDisplay" class="rest-timer-display" aria-live="polite">01:30</output>
         </form>
-      </section>
-      <section class="card cardio-card">
-        <h3>Oppvarming og kondisjon</h3>
-        <p class="subtle">Registrer tid og distanse på tredemølle, sykkel, gåtur, ellipsemaskin eller stakemaskin.</p>
-        <form id="cardioForm" class="cardio-form">
-          <label class="cardio-field">Aktivitet
-            <select id="cardioActivity" required>
-              <option value="Tredemølle">Tredemølle</option>
-              <option value="Sykling">Sykling</option>
-              <option value="Gåtur">Gåtur</option>
-              <option value="Ellipsemaskin">Ellipsemaskin</option>
-              <option value="Stakemaskin">Stakemaskin</option>
-            </select>
-          </label>
-          <label class="cardio-field">Tid (minutter)
-            <input type="number" id="cardioMinutes" min="0" max="600" step="1" inputmode="numeric" placeholder="f.eks. 1">
-          </label>
-          <label class="cardio-field">Sekunder
-            <input type="number" id="cardioSeconds" min="0" max="59" step="1" inputmode="numeric" placeholder="f.eks. 54">
-          </label>
-          <div class="cardio-extra-controls">
-            <label class="cardio-field" for="cardioFieldSelect">Legg til opplysning
-              <select id="cardioFieldSelect">
-                <option value="">Velg opplysning</option>
-                <option value="distance">Distanse</option>
-                <option value="speed">Hastighet</option>
-                <option value="incline">Stigning</option>
-                <option value="pace">Tempo</option>
-                <option value="comment">Kommentar</option>
-              </select>
-            </label>
-            <button type="button" id="addCardioField" class="cardio-add-button">Legg til</button>
-          </div>
-          <div id="cardioOptionalFields" class="cardio-optional-fields" aria-live="polite"></div>
-          <label class="cardio-field">Dato
-            <input type="date" id="cardioDate" required>
-          </label>
-          <button type="submit" class="cardio-submit">Lagre kondisjonsøkt</button>
-        </form>
-        <h4 class="cardio-history-heading">Tidligere økter</h4>
-        <ul id="cardioHistory" class="cardio-history" aria-live="polite"></ul>
-      </section>
-      <div id="workoutPlan" class="workout-plan"></div>
-      <section class="card extra-workout-card">
+        </section>
+        <div id="workoutPlan" class="workout-plan"></div>
+        <section class="card extra-workout-card">
         <h2>Registrer ekstra økt</h2>
         <p class="subtle">Velg en av de tre øktene og datoen du trente, for eksempel lørdag.</p>
         <form id="extraWorkoutForm" class="extra-workout-form">
@@ -107,8 +117,98 @@
           </label>
           <button type="submit">Lagre ekstra økt</button>
         </form>
-      </section>
-      <section class="card group-workout-card">
+        </section>
+        <section class="card workout-history-card">
+          <h2>Treningshistorikk</h2>
+          <p class="subtle">Styrkeøktene du har lagret.</p>
+          <ul id="workoutHistory" class="workout-history" aria-live="polite"></ul>
+        </section>
+        <section class="card plan-editor-card">
+          <h2>Tilpass treningsplanen</h2>
+          <p class="subtle">Velg muskelgruppe for å se apparatøvelser og tips. Du kan også velge øvelser i planen eller dine egne.</p>
+          <form id="planExerciseForm" class="plan-exercise-form">
+            <label class="plan-exercise-field">Muskelgruppe
+              <select id="planExerciseCategory" required>
+                <option value="Bein">Bein</option>
+                <option value="Rumpe og lår">Rumpe og lår</option>
+                <option value="Mage">Mage</option>
+                <option value="Bryst">Bryst</option>
+                <option value="Rygg">Rygg</option>
+              </select>
+            </label>
+            <label class="plan-exercise-field">Treningsdag
+              <select id="planExerciseDay" required>
+                <option value="Mandag">Mandag</option>
+                <option value="Onsdag">Onsdag</option>
+                <option value="Fredag">Fredag</option>
+              </select>
+            </label>
+            <label class="plan-exercise-field">Øvelsesnavn
+              <select id="planExerciseName" required>
+                <option value="">Velg øvelse</option>
+              </select>
+            </label>
+            <label class="plan-exercise-field">Sett og repetisjoner
+              <input type="text" id="planExerciseDetail" maxlength="120" placeholder="f.eks. 3 sett × 10 repetisjoner" required>
+            </label>
+            <div class="plan-exercise-help">
+              <div id="planEquipmentPreview" class="plan-equipment-preview" hidden>
+                <img id="planEquipmentPhoto" alt="" hidden>
+                <strong id="planEquipmentLabel">Apparat</strong>
+              </div>
+              <svg class="muscle-map" viewBox="0 0 220 166" role="img" aria-labelledby="muscleMapTitle muscleMapDescription">
+                <title id="muscleMapTitle">Musklene som trenes</title>
+                <desc id="muscleMapDescription">En enkel tegning av kroppen forfra og bakfra. Muskler i øvelsen fargelegges etter veiledende restitusjon: rødt ved 0 prosent, oransje ved 50 prosent og grønt ved 100 prosent.</desc>
+                <text class="muscle-map-caption" x="53" y="12" text-anchor="middle">FORAN</text>
+                <text class="muscle-map-caption" x="164" y="12" text-anchor="middle">BAK</text>
+                <g class="body-shape">
+                  <circle cx="53" cy="27" r="10"/>
+                  <path d="M43 40 Q53 35 63 40 L70 49 67 83 64 105 70 153 59 153 53 116 47 153 36 153 42 105 39 83 36 49Z"/>
+                  <path d="M38 47 26 54 19 82 25 84 34 64 41 59ZM68 47 80 54 87 82 81 84 72 64 65 59Z"/>
+                  <circle cx="164" cy="27" r="10"/>
+                  <path d="M154 40 Q164 35 174 40 L181 49 178 83 175 105 181 153 170 153 164 116 158 153 147 153 153 105 150 83 147 49Z"/>
+                  <path d="M149 47 137 54 130 82 136 84 145 64 152 59ZM179 47 191 54 198 82 192 84 183 64 176 59Z"/>
+                </g>
+                <g class="muscle-regions">
+                  <path data-muscle="shoulders" d="M38 45 Q44 39 50 42 L48 54 37 58 33 53ZM56 42 Q62 39 68 45 L73 53 69 58 58 54Z"/>
+                  <path data-muscle="chest" d="M42 53 Q53 49 64 53 L63 66 Q53 70 43 66Z"/>
+                  <path data-muscle="biceps" d="M34 57 40 56 37 72 31 71ZM62 56 68 57 71 71 65 72Z"/>
+                  <path data-muscle="triceps" d="M143 56 149 57 147 73 141 72ZM179 57 185 56 188 72 182 73Z"/>
+                  <path data-muscle="abs" d="M44 69 Q53 72 62 69 L61 91 Q53 95 45 91Z"/>
+                  <path data-muscle="obliques" d="M40 68 44 69 45 91 41 88ZM62 69 66 68 65 88 61 91Z"/>
+                  <path data-muscle="quads" d="M43 99 52 102 50 128 46 145 39 145 42 119ZM54 102 63 99 64 119 67 145 60 145 56 128Z"/>
+                  <path data-muscle="innerThigh" d="M51 104 54 104 54 130 50 139 48 129Z M55 104 58 104 61 129 59 139 55 130Z"/>
+                  <path data-muscle="calves" d="M39 132 46 133 44 151 37 151ZM60 133 67 132 69 151 62 151Z"/>
+                  <path data-muscle="upperBack" d="M153 44 Q164 40 175 44 L174 61 164 68 154 61Z"/>
+                  <path data-muscle="lats" d="M153 62 163 68 163 85 153 91 149 77ZM165 68 175 62 179 77 175 91 165 85Z"/>
+                  <path data-muscle="lowerBack" d="M158 84 164 87 170 84 171 99 164 103 157 99Z"/>
+                  <path data-muscle="glutes" d="M153 99 Q164 96 175 99 L174 112 Q164 118 154 112Z"/>
+                  <path data-muscle="hamstrings" d="M153 114 163 117 160 136 157 147 150 146ZM165 117 175 114 178 146 171 147 168 136Z"/>
+                </g>
+              </svg>
+              <div class="plan-exercise-help-text">
+                <strong>Musklene som trenes</strong>
+                <span id="planMuscleLabels" aria-live="polite">Velg en øvelse for å se musklene som trenes.</span>
+                <div id="planExerciseRecovery" class="plan-exercise-recovery" aria-live="polite">Velg en øvelse for å se restitusjonsstatus.</div>
+                <p id="planExerciseTip" class="plan-exercise-tip">Velg en muskelgruppe og øvelse for å se tips.</p>
+              </div>
+            </div>
+            <button type="submit" class="plan-exercise-submit">Legg til i treningsplanen</button>
+          </form>
+        </section>
+        <section class="card custom-card">
+          <h2>Øvelsesliste</h2>
+          <p class="subtle">Legg til øvelser her. De blir tilgjengelige i rullegardinlisten over.</p>
+          <form id="exerciseForm" class="inline-form">
+            <label class="visually-hidden" for="exerciseInput">Ny øvelse</label>
+            <input type="text" id="exerciseInput" maxlength="60" placeholder="Ny øvelse" required>
+            <button type="submit">Legg til</button>
+          </form>
+          <ul id="customExercises" class="custom-list"></ul>
+        </section>
+      </div>
+      <div class="training-category" data-training-category="groups" hidden>
+        <section class="card group-workout-card">
         <h2>Registrer gruppetime</h2>
         <p class="subtle">Velg timen du deltok på, og datoen fra kalenderen. <a href="https://plankebyentrening.no/gruppetrening/" target="_blank" rel="noopener noreferrer">Se timeplan og beskrivelser på Plankebyen Trening</a>.</p>
         <form id="groupWorkoutForm" class="group-workout-form">
@@ -147,41 +247,25 @@
           </label>
           <button type="submit">Lagre gruppetime</button>
         </form>
-      </section>
-      <section class="card workout-history-card">
-        <h2>Utførte treningsøkter</h2>
-        <p class="subtle">Datoene på øktene du har lagret.</p>
-        <ul id="workoutHistory" class="workout-history" aria-live="polite"></ul>
-      </section>
-      <section class="card plan-editor-card">
-        <h2>Tilpass treningsplanen</h2>
-        <p class="subtle">Legg en øvelse til på valgt dag, eller trykk «Fjern» ved en øvelse du ikke vil ha med.</p>
-        <form id="planExerciseForm" class="plan-exercise-form">
-          <label class="plan-exercise-field">Treningsdag
-            <select id="planExerciseDay" required>
-              <option value="Mandag">Mandag</option>
-              <option value="Onsdag">Onsdag</option>
-              <option value="Fredag">Fredag</option>
-            </select>
-          </label>
-          <label class="plan-exercise-field">Øvelsesnavn
-            <input type="text" id="planExerciseName" maxlength="60" placeholder="f.eks. Knebøy" required>
-          </label>
-          <label class="plan-exercise-field">Sett og repetisjoner
-            <input type="text" id="planExerciseDetail" maxlength="120" placeholder="f.eks. 3 sett × 10 repetisjoner" required>
-          </label>
-          <button type="submit" class="plan-exercise-submit">Legg til i treningsplanen</button>
-        </form>
-      </section>
-      <section class="card custom-card">
-        <h2>Øvelsesliste</h2>
-        <p class="subtle">Lagre øvelsesnavn her. Bruk «Tilpass treningsplanen» for å legge en øvelse inn på en treningsdag.</p>
-        <form id="exerciseForm" class="inline-form">
-          <label class="visually-hidden" for="exerciseInput">Ny øvelse</label>
-          <input type="text" id="exerciseInput" maxlength="60" placeholder="Ny øvelse" required>
-          <button type="submit">Legg til</button>
-        </form>
-        <ul id="customExercises" class="custom-list"></ul>
+        </section>
+        <section class="card workout-history-card">
+          <h2>Gruppetimehistorikk</h2>
+          <p class="subtle">Gruppetimene du har deltatt på.</p>
+          <ul id="groupWorkoutHistory" class="workout-history" aria-live="polite"></ul>
+        </section>
+      </div>
+    </section>
+
+    <section id="restitusjon" class="page-section">
+      <div class="section-heading"><div><p class="eyebrow">OVERSIKT OVER NYLIG TRENING</p><h2>Restitusjon</h2></div></div>
+      <section class="card recovery-card">
+        <p class="subtle">Her ser du muskelgruppene fra fullførte styrke- og kondisjonsøkter de siste 7 dagene. Øktene regnes hver for seg, også når du trener O2 og styrke samme dag.</p>
+        <div class="recovery-overview">
+          <div id="recoveryMuscleMap" class="recovery-muscle-map"></div>
+          <ul id="recoveryList" class="recovery-list" aria-live="polite"></ul>
+        </div>
+        <section id="recoveryWorkoutTip" class="recovery-workout-tip" aria-live="polite"></section>
+        <p class="recovery-disclaimer">Anslaget bruker 48 timers standard hvile fra treningsdatoen (registrert per dag, ikke klokkeslett). Kondisjonsøkter kobles til muskelgrupper som vanligvis brukes i aktiviteten. Gruppetime uten kjent muskelkobling inngår ikke. Faktisk restitusjon varierer med økt, søvn og dagsform – lytt til kroppen.</p>
       </section>
     </section>
 
@@ -190,13 +274,35 @@
       <section class="card">
         <div class="progress-summary"><div><span class="stat-label">Fullførte økter</span><strong id="progressWorkoutCount">0</strong></div><div><span class="stat-label">Vektendring</span><strong id="weightChange">–</strong></div></div>
         <h3 class="history-heading">Vektutvikling</h3>
+        <div class="progress-period-control">
+          <label class="strength-picker" for="weightPeriod">Periode
+            <select id="weightPeriod">
+              <option value="all">All historikk</option>
+              <option value="7">Siste 7 dager</option>
+              <option value="30">Siste 30 dager</option>
+              <option value="90">Siste 90 dager</option>
+              <option value="custom">Egendefinert</option>
+            </select>
+          </label>
+          <div id="weightCustomDates" class="progress-date-filters" hidden>
+            <label for="weightDateFrom">Fra dato<input id="weightDateFrom" type="date"></label>
+            <label for="weightDateTo">Til dato<input id="weightDateTo" type="date"></label>
+          </div>
+          <p id="weightPeriodMessage" class="progress-period-message" aria-live="polite"></p>
+        </div>
         <div id="weightChart" class="weight-chart" role="img" aria-label="Graf over vektmålinger"></div>
         <ul id="weightHistory" class="weight-history"></ul>
         <div class="cardio-progress">
           <div class="strength-heading"><div><h3>Kondisjonsutvikling</h3><p class="subtle">Se tid og distanse de siste dagene.</p></div></div>
           <div class="cardio-progress-filters">
             <label class="strength-picker" for="cardioPeriod">Periode
-              <select id="cardioPeriod"><option value="7">Siste 7 dager</option><option value="30">Siste 30 dager</option></select>
+              <select id="cardioPeriod">
+                <option value="7">Siste 7 dager</option>
+                <option value="30">Siste 30 dager</option>
+                <option value="90">Siste 90 dager</option>
+                <option value="all">All historikk</option>
+                <option value="custom">Egendefinert</option>
+              </select>
             </label>
             <label class="strength-picker" for="cardioFilter">Aktivitet
               <select id="cardioFilter">
@@ -209,6 +315,11 @@
               </select>
             </label>
           </div>
+          <div id="cardioCustomDates" class="progress-date-filters" hidden>
+            <label for="cardioDateFrom">Fra dato<input id="cardioDateFrom" type="date"></label>
+            <label for="cardioDateTo">Til dato<input id="cardioDateTo" type="date"></label>
+          </div>
+          <p id="cardioPeriodMessage" class="progress-period-message" aria-live="polite"></p>
           <div class="cardio-summary">
             <div><span class="stat-label">Økter</span><strong id="cardioProgressCount">0</strong></div>
             <div><span class="stat-label">Samlet tid</span><strong id="cardioProgressDuration">0 sek</strong></div>
@@ -240,6 +351,22 @@
           <label class="strength-picker" for="strengthExercise">Velg øvelse
             <select id="strengthExercise"></select>
           </label>
+          <div class="progress-period-control">
+            <label class="strength-picker" for="strengthPeriod">Periode
+              <select id="strengthPeriod">
+                <option value="all">All historikk</option>
+                <option value="7">Siste 7 dager</option>
+                <option value="30">Siste 30 dager</option>
+                <option value="90">Siste 90 dager</option>
+                <option value="custom">Egendefinert</option>
+              </select>
+            </label>
+            <div id="strengthCustomDates" class="progress-date-filters" hidden>
+              <label for="strengthDateFrom">Fra dato<input id="strengthDateFrom" type="date"></label>
+              <label for="strengthDateTo">Til dato<input id="strengthDateTo" type="date"></label>
+            </div>
+            <p id="strengthPeriodMessage" class="progress-period-message" aria-live="polite"></p>
+          </div>
           <p id="strengthSummary" class="strength-summary"></p>
           <div id="strengthChart" class="strength-chart" role="img" aria-label="Graf over løftevekt for valgt øvelse"></div>
           <ul id="strengthHistory" class="weight-history strength-history"></ul>

@@ -47,6 +47,11 @@ h3 { margin: 0 0 5px; font-size: 1rem; }
 .page-section { scroll-margin-top: 15px; }
 .section-heading { display: flex; align-items: end; justify-content: space-between; margin: 4px 2px 11px; }
 .section-heading h2 { margin-bottom: 0; }
+.training-filters { display: flex; gap: 8px; margin: 0 0 14px; padding: 4px; overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.training-filter { min-height: 40px; flex: 1 0 auto; padding: 8px 13px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); white-space: nowrap; }
+.training-filter:hover, .training-filter:focus-visible { border-color: var(--green); color: var(--text); }
+.training-filter[aria-pressed="true"] { background: var(--green); color: #fff; }
+.training-category[hidden] { display: none !important; }
 .workout-plan { display: grid; gap: 13px; }
 .workout-card { padding: 16px; }
 .workout-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
@@ -100,6 +105,35 @@ h3 { margin: 0 0 5px; font-size: 1rem; }
 .plan-exercise-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
 .plan-exercise-field { display: grid; gap: 5px; color: var(--muted); font-size: .8rem; font-weight: 700; }
 .plan-exercise-field input, .plan-exercise-field select { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.plan-exercise-help { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised); }
+.plan-equipment-preview { display: grid; justify-items: center; gap: 5px; width: 102px; flex: 0 0 102px; color: var(--green-light); text-align: center; font-size: .72rem; }
+.plan-equipment-preview img { width: 92px; height: 110px; object-fit: contain; }
+.plan-equipment-preview[hidden] { display: none !important; }
+.plan-equipment-preview strong { line-height: 1.25; }
+.muscle-map { width: 215px; height: auto; flex: 0 0 215px; }
+.muscle-map-caption { fill: var(--muted); font: 700 10px Arial, sans-serif; letter-spacing: .08em; }
+.body-shape { fill: #69736d; stroke: #a4ada7; stroke-width: 1.4; stroke-linejoin: round; }
+.muscle-regions path { fill: #7d8981; fill-opacity: .92; stroke: #374139; stroke-width: 1.2; stroke-linejoin: round; transition: fill .18s, filter .18s; }
+.muscle-regions path.is-active { fill: #8bcf72; fill-opacity: 1; filter: drop-shadow(0 0 3px #8bcf72); }
+.muscle-regions path.is-active[data-recovery-status="resting"] { fill: #e0524d; filter: drop-shadow(0 0 3px #e0524d); }
+.muscle-regions path.is-active[data-recovery-status="recovering"] { fill: #eda62f; filter: drop-shadow(0 0 3px #eda62f); }
+.muscle-regions path.is-active[data-recovery-status="ready"] { fill: #75c96b; filter: drop-shadow(0 0 3px #75c96b); }
+.muscle-regions path.is-active[data-recovery-status="unknown"] { fill: #8b9690; filter: none; }
+.plan-exercise-help-text { display: grid; gap: 5px; min-width: 0; color: var(--text); font-size: .86rem; }
+#planMuscleLabels { color: var(--green-light); font-weight: 700; }
+.plan-exercise-recovery { display: grid; gap: 6px; padding: 8px 10px; border-radius: 7px; background: var(--surface); font-size: .79rem; }
+.plan-exercise-recovery > strong { color: var(--text); }
+.plan-muscle-recovery-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.plan-muscle-recovery { padding: 4px 7px; border-radius: 99px; background: #eda62f22; color: #eda62f; font-weight: 700; }
+.plan-muscle-recovery[data-recovery-status="resting"] { background: #e0524d22; color: #e0524d; }
+.plan-muscle-recovery[data-recovery-status="ready"] { background: #75c96b22; color: #75c96b; }
+.plan-muscle-recovery[data-recovery-status="unknown"] { background: var(--surface-raised); color: var(--muted); font-weight: 400; }
+.muscle-recovery-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px 9px; color: var(--muted); font-size: .68rem; line-height: 1.4; }
+.muscle-recovery-legend > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.muscle-recovery-legend > span::before { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #eda62f; content: ""; }
+.muscle-recovery-legend > [data-recovery-status="resting"]::before { background: #e0524d; }
+.muscle-recovery-legend > [data-recovery-status="ready"]::before { background: #75c96b; }
+.plan-exercise-tip { margin: 3px 0 0; padding: 9px 11px; border-left: 3px solid var(--green-light); border-radius: 5px; background: var(--surface); color: var(--muted); font-size: .82rem; }
 .plan-exercise-submit { grid-column: 1 / -1; min-height: 44px; }
 .subtle { margin-bottom: 13px; }
 .cardio-card { margin-bottom: 13px; }
@@ -136,6 +170,30 @@ input::placeholder { color: #878787; }
 button { padding: 10px 15px; border: 0; border-radius: 6px; background: var(--green); color: white; font-weight: 700; cursor: pointer; }
 button:hover { background: #388e3c; }
 .progress-summary { grid-template-columns: repeat(2, 1fr); margin: 0 0 20px; }
+.recovery-card > .subtle { margin-top: 0; }
+.recovery-overview { display: grid; grid-template-columns: minmax(150px, 190px) minmax(0, 1fr); align-items: start; gap: 16px; }
+.recovery-muscle-map { display: grid; place-items: center; padding: 10px 4px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised); }
+.recovery-muscle-map-svg { display: block; width: min(100%, 190px); height: auto; }
+.recovery-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.recovery-item { display: grid; gap: 8px; padding: 13px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised); }
+.recovery-item-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.recovery-item-heading strong { color: var(--text); }
+.recovery-item-heading > span { color: #eda62f; font-weight: 700; }
+.recovery-item[data-recovery-status="resting"] .recovery-item-heading > span { color: #e0524d; }
+.recovery-item[data-recovery-status="ready"] .recovery-item-heading > span { color: #75c96b; }
+.recovery-track { height: 9px; overflow: hidden; border-radius: 99px; background: var(--surface); }
+.recovery-track span { display: block; height: 100%; border-radius: inherit; background: #eda62f; transition: width .2s ease; }
+.recovery-item[data-recovery-status="resting"] .recovery-track span { background: #e0524d; }
+.recovery-item[data-recovery-status="ready"] .recovery-track span { background: #75c96b; }
+.recovery-item small, .recovery-empty, .recovery-disclaimer { color: var(--muted); font-size: .82rem; line-height: 1.5; }
+.recovery-empty { grid-column: 1 / -1; margin: 0; padding: 12px 0; }
+.recovery-disclaimer { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--border); }
+.recovery-last-exercise { padding-top: 7px; border-top: 1px solid var(--border); }
+.recovery-workout-tip { display: grid; justify-items: start; gap: 8px; margin-top: 18px; padding: 15px; border: 1px solid var(--border); border-left: 4px solid var(--green-light); border-radius: 9px; background: var(--surface-raised); }
+.recovery-workout-tip h3, .recovery-workout-tip p { margin: 0; }
+.recovery-workout-tip p { color: var(--text); font-size: .9rem; line-height: 1.5; }
+.recovery-workout-tip small { color: var(--muted); font-size: .78rem; line-height: 1.45; }
+.recovery-workout-tip button { margin-top: 3px; }
 .history-heading { margin: 6px 0 8px; }
 .weight-chart { position: relative; height: 175px; overflow: hidden; border-radius: 8px; background: var(--surface-raised); }
 .weight-chart svg { width: 100%; height: 100%; overflow: visible; }
@@ -168,6 +226,12 @@ button:hover { background: #388e3c; }
 .strength-heading .subtle { font-size: .8rem; }
 .strength-picker { display: grid; max-width: 300px; gap: 5px; color: var(--muted); font-size: .8rem; font-weight: 700; }
 .strength-picker select { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #414141; border-radius: 7px; background: #161616; color: var(--text); font: inherit; font-weight: 400; }
+.progress-period-control { display: grid; justify-items: start; gap: 8px; margin: 0 0 12px; }
+.progress-date-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: min(100%, 420px); }
+.progress-date-filters[hidden] { display: none; }
+.progress-date-filters label { display: grid; gap: 5px; color: var(--muted); font-size: .8rem; font-weight: 700; }
+.progress-date-filters input { width: 100%; }
+.progress-period-message { min-height: 1em; margin: 0; color: #ffb4a9; font-size: .8rem; }
 .strength-summary { margin: 13px 0 9px; color: var(--green-light); font-size: .88rem; font-weight: 700; }
 .strength-chart { height: 230px; overflow: hidden; border-radius: 8px; background: var(--surface-raised); }
 .strength-chart svg { display: block; width: 100%; height: 100%; }
@@ -277,6 +341,12 @@ footer span { color: var(--green-light); }
 [data-theme="light"] .cardio-progress .strength-picker select, [data-theme="light"] .group-class-progress .strength-picker select, [data-theme="light"] .edit-field input, [data-theme="light"] .edit-field select, [data-theme="light"] .edit-field textarea, [data-theme="light"] .rest-timer-controls select { border-color: var(--border); background: #fff; }
 [data-theme="light"] .backup-tools button, [data-theme="light"] .backup-import-button { background: #f0f1ed; }
 [data-theme="light"] .exercise-art { background: #e8f1e6; }
+[data-theme="light"] .recovery-item-heading > span, [data-theme="light"] .plan-muscle-recovery { color: #805500; }
+[data-theme="light"] .recovery-track span { background: #a87510; }
+[data-theme="light"] .recovery-item[data-recovery-status="resting"] .recovery-item-heading > span, [data-theme="light"] .plan-muscle-recovery[data-recovery-status="resting"] { color: #a53f2b; }
+[data-theme="light"] .recovery-item[data-recovery-status="resting"] .recovery-track span { background: #b34e37; }
+[data-theme="light"] .plan-muscle-recovery[data-recovery-status="ready"] { color: #2e7d32; }
+[data-theme="light"] .recovery-workout-tip { border-left-color: #2e7d32; }
 @media (max-width: 560px) {
   body { padding: 17px 14px 32px; }
   .site-header { margin-bottom: 8px; }
@@ -294,6 +364,13 @@ footer span { color: var(--green-light); }
   .photo-button { grid-column: auto; }
   .plan-exercise-form { grid-template-columns: 1fr; }
   .plan-exercise-submit { grid-column: auto; }
+  .plan-exercise-help { align-items: flex-start; flex-wrap: wrap; gap: 8px; padding: 9px; }
+  .plan-equipment-preview { width: 64px; flex-basis: 64px; font-size: .66rem; }
+  .plan-equipment-preview img { width: 60px; height: 82px; }
+  .muscle-map { width: 132px; flex-basis: 132px; }
+  .plan-exercise-help-text { flex: 1 1 100%; font-size: .8rem; }
+  .training-filters { gap: 5px; }
+  .training-filter { padding: 8px 10px; font-size: .82rem; }
   .extra-workout-form { grid-template-columns: 1fr; }
   .extra-workout-form button { grid-column: auto; }
   .group-workout-form { grid-template-columns: 1fr; }
@@ -310,7 +387,11 @@ footer span { color: var(--green-light); }
   .rest-timer-controls { grid-template-columns: 1fr 1fr; }
   .rest-timer-controls label { grid-column: 1 / -1; }
   .rest-timer-controls select { grid-column: 1 / -1; }
+  .recovery-overview { grid-template-columns: 1fr; }
+  .recovery-muscle-map-svg { width: min(100%, 180px); }
+  .recovery-list { grid-template-columns: 1fr; }
   .cardio-progress-filters { grid-template-columns: 1fr; }
+  .progress-date-filters { grid-template-columns: 1fr; }
   .cardio-summary { gap: 6px; }
   .cardio-summary > div { padding: 8px 6px; }
   .cardio-summary strong { font-size: .78rem; }

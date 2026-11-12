@@ -16,12 +16,20 @@ Gå til `http://localhost:8000`. Bruk installasjonsknappen i appen når nettlese
 
 - Tre treningsøkter med justerbare ukedager, avkryssing av øvelser og datoført treningshistorikk
 - Naviger mellom oversikt, trening, progresjon, kroppsvekt, bilder og innstillinger via en fast menylinje øverst
+- Filtrer treningsdelen etter oppvarming/kondisjon, styrketrening eller gruppetimer
+- Legg til styrkeøvelser ved å velge øvelsesnavn fra en rullegardin med planøvelser og egne øvelser
+- Få apparatforslag, anbefalte sett/repetisjoner og enkle teknikkpåminnelser for bein, rumpe/lår, mage, bryst og rygg
+- Se en enkel muskelillustrasjon forfra og bakfra; musklene øvelsen trener fargelegges etter restitusjon: rødt (0 %), oransje (50 %) eller grønt (100 %)
+- Se eksisterende apparatbilder sammen med muskelillustrasjonen der bilder finnes
 - Registrer ekstra treningsøkter på valgfri dato, også på dager utenfor den faste ukeplanen
 - Registrer gruppetimer fra Plankebyen Trenings timebeskrivelser og velg dato i kalenderen
 - Se gruppetime-statistikk med antall deltakelser, variasjon og mest besøkte time
+- Følg veiledende restitusjon fra styrke- og kondisjonsøkter, også når de logges samme dag, med muskelkart og siste aktivitet per muskelgruppe
+- Få et treningsforslag fra restitusjonsstatusen og åpne styrkeplanen direkte
+- Se restitusjonsprosent for muskelgruppene til en øvelse når du tilpasser treningsplanen
 - Tilpass treningsplanen ved å legge til øvelser på valgt dag eller fjerne dem
 - Oppvarmings- og kondisjonslogg for tredemølle, sykling, gåtur, ellipsemaskin og stakemaskin med tid i minutter og sekunder; legg til distanse, hastighet, stigning, tempo eller kommentar ved behov
-- Kondisjonsgraf med oppsummering for siste 7 eller 30 dager
+- Progresjonsgrafer med «All historikk» og egendefinert datoperiode for kroppsvekt, styrke og kondisjon; kondisjon vises som søyler, mens vekt og styrke vises som kurver
 - Hvileklokke med valgbare pauser mellom sett
 - Rediger tidligere kroppsvekt-, kondisjons- og løftevektregistreringer
 - Eksporter og importer sikkerhetskopi med treningsbilder

@@ -2,11 +2,109 @@ const STORAGE_KEY = "min-pt-app-v1";
 const PHOTO_DATABASE = "min-pt-media-v1";
 const cardioActivities = ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin", "Stakemaskin"];
 const cardioOptionalFields = {
-  distance: { label: "Distanse (km)", id: "cardioDistance", type: "number", attributes: { min: "0", max: "1000", step: "0.01", inputmode: "decimal", placeholder: "f.eks. 1,5" } },
   speed: { label: "Hastighet (km/t)", id: "cardioSpeed", type: "number", attributes: { min: "0.1", max: "100", step: "0.1", inputmode: "decimal", placeholder: "f.eks. 6,5" } },
   incline: { label: "Stigning (%)", id: "cardioIncline", type: "number", attributes: { min: "0", max: "100", step: "0.1", inputmode: "decimal", placeholder: "f.eks. 2" } },
   pace: { label: "Tempo (min/km)", id: "cardioPace", type: "text", attributes: { inputmode: "numeric", placeholder: "f.eks. 06:30" } },
   comment: { label: "Kommentar", id: "cardioComment", type: "textarea", attributes: { maxlength: "500", rows: "3", placeholder: "Skriv en kommentar (valgfritt)" } }
+};
+const exerciseRecommendations = {
+  "Bein": [
+    { name: "Beinpress", equipment: "Beinpressmaskin", detail: "3 sett × 10–12 repetisjoner", tip: "Plasser føttene omtrent i skulderbredde. Senk kontrollert, og press gjennom hele foten." },
+    { name: "Leg Extension", equipment: "Beinstrekkmaskin", detail: "3 sett × 10–12 repetisjoner", tip: "Strekk knærne rolig uten å låse dem, og senk vekten kontrollert." },
+    { name: "Leg Curl", equipment: "Lårcurlmaskin", detail: "3 sett × 10–12 repetisjoner", tip: "Juster puten ved anklene. Bøy knærne og før hælene mot setet uten å løfte hoftene." },
+    { name: "Hack squat", equipment: "Hack squat-maskin", detail: "3 sett × 8–12 repetisjoner", tip: "Hold ryggen mot puten. Senk bare så langt du kan holde god kontroll." },
+    { name: "Tåhev", equipment: "Tåhev- eller beinpressmaskin", detail: "3 sett × 12–15 repetisjoner", tip: "Senk hælene rolig og løft deg opp på tærne uten å sprette." }
+  ],
+  "Rumpe og lår": [
+    { name: "Hip thrust", equipment: "Hip thrust-maskin", detail: "3 sett × 8–12 repetisjoner", tip: "Hold ribbeina nede og press gjennom hælene. Stopp når hoftene er strake." },
+    { name: "Abduksjon", equipment: "Abduktormaskin", detail: "3 sett × 12–15 repetisjoner", tip: "Press knærne utover rolig, hold et kort øyeblikk, og før dem kontrollert tilbake." },
+    { name: "Adduksjon", equipment: "Adduktormaskin", detail: "3 sett × 12–15 repetisjoner", tip: "Før knærne sammen med kontroll. Velg en behagelig bevegelsesbane." },
+    { name: "Kabel kickback", equipment: "Kabelapparat med ankelstropp", detail: "3 sett × 10–12 repetisjoner per side", tip: "Hold overkroppen stabil og før beinet bakover uten å svaie i korsryggen." },
+    { name: "Knebøy i Smith-maskin", equipment: "Smith-maskin", detail: "3 sett × 8–12 repetisjoner", tip: "Stå stødig og senk deg kontrollert. Bruk en dybde som føles stabil og smertefri." }
+  ],
+  "Mage": [
+    { name: "Magemaskin", equipment: "Magemaskin", detail: "3 sett × 12–15 repetisjoner", tip: "Rund overkroppen kontrollert ved å spenne magen; unngå å dra med armene." },
+    { name: "Roterende magemaskin", equipment: "Rotasjonsmaskin for mage", detail: "3 sett × 10–12 repetisjoner per side", tip: "Hold hoftene stabile og roter overkroppen rolig innenfor et komfortabelt utslag." },
+    { name: "Kabelcrunch", equipment: "Kabelapparat med tau", detail: "3 sett × 10–15 repetisjoner", tip: "Bøy overkroppen ved å trekke ribbeina mot hoftene. Hold hoftene mest mulig i ro." },
+    { name: "Kneløft i stativ", equipment: "Kneløftstativ (Captain's chair)", detail: "3 sett × 8–12 repetisjoner", tip: "Støtt underarmene og løft knærne kontrollert uten å svinge kroppen." },
+    { name: "Pallof press", equipment: "Kabelapparat", detail: "3 sett × 10–12 repetisjoner per side", tip: "Stå sidelengs mot kabelen og hold overkroppen rolig mens du presser håndtaket frem." }
+  ],
+  "Bryst": [
+    { name: "Brystpress", equipment: "Brystpressmaskin", detail: "3 sett × 8–12 repetisjoner", tip: "Hold ryggen mot puten. Press frem uten å låse albuene, og senk kontrollert." },
+    { name: "Skrå brystpress", equipment: "Skrå brystpressmaskin", detail: "3 sett × 8–12 repetisjoner", tip: "Juster setet slik at håndtakene starter omtrent ved øvre bryst." },
+    { name: "Pec Deck", equipment: "Pec Deck-maskin", detail: "3 sett × 10–12 repetisjoner", tip: "Hold en lett bøy i albuene og før armene sammen uten å bruke fart." },
+    { name: "Kabel-flyes", equipment: "Kabelapparat", detail: "3 sett × 10–12 repetisjoner", tip: "Stå stødig og før hendene sammen foran brystet med en myk albuebøy." },
+    { name: "Brystpress med manualer", equipment: "Manualer og treningsbenk", detail: "3 sett × 8–12 repetisjoner", tip: "Hold håndleddene stabile og senk manualene kontrollert til en behagelig dybde." }
+  ],
+  "Rygg": [
+    { name: "Nedtrekk", equipment: "Nedtrekksmaskin", detail: "3 sett × 8–12 repetisjoner", tip: "Trekk stangen mot øvre bryst mens du holder overkroppen rolig." },
+    { name: "Sittende roing", equipment: "Sittende ro-maskin", detail: "3 sett × 8–12 repetisjoner", tip: "Trekk håndtaket mot magen med lang rygg og før armene rolig frem igjen." },
+    { name: "Bryststøttet roing", equipment: "Ro-maskin med bryststøtte", detail: "3 sett × 8–12 repetisjoner", tip: "Hold brystet mot puten og trekk albuene bakover uten å løfte skuldrene." },
+    { name: "Rygghev-maskin", equipment: "Rygghev-maskin", detail: "3 sett × 10–12 repetisjoner", tip: "Strekk overkroppen kontrollert og unngå å svaie langt bak." },
+    { name: "Assistert pull-up", equipment: "Assistert pull-up-maskin", detail: "3 sett × 6–10 repetisjoner", tip: "Trekk albuene ned mot siden og bruk en hjelpemotstand du kan kontrollere." },
+    { name: "Face pull", equipment: "Kabelapparat med tau", detail: "3 sett × 12–15 repetisjoner", tip: "Trekk tauet mot ansiktet med albuene ut, og hold skuldrene avslappet." }
+  ]
+};
+const muscleLabels = {
+  chest: "Bryst",
+  shoulders: "Skuldre",
+  biceps: "Biceps",
+  triceps: "Triceps",
+  upperBack: "Øvre rygg",
+  lats: "Brede ryggmuskler",
+  lowerBack: "Korsrygg",
+  abs: "Mage",
+  obliques: "Skrå magemuskler",
+  glutes: "Rumpe",
+  quads: "Forside lår",
+  hamstrings: "Bakside lår",
+  calves: "Legger",
+  innerThigh: "Lår innsiden"
+};
+const muscleGroupsByCategory = {
+  "Bein": ["quads", "hamstrings", "calves"],
+  "Rumpe og lår": ["glutes", "quads", "hamstrings"],
+  "Mage": ["abs", "obliques"],
+  "Bryst": ["chest", "shoulders"],
+  "Rygg": ["upperBack", "lats", "lowerBack"]
+};
+const muscleGroupsByExercise = {
+  "Beinpress": ["quads", "glutes"],
+  "Leg Extension": ["quads"],
+  "Leg Curl": ["hamstrings"],
+  "Hack squat": ["quads", "glutes"],
+  "Tåhev": ["calves"],
+  "Hip thrust": ["glutes", "hamstrings"],
+  "Abduksjon": ["glutes"],
+  "Adduksjon": ["innerThigh"],
+  "Kabel kickback": ["glutes"],
+  "Knebøy i Smith-maskin": ["quads", "glutes"],
+  "Magemaskin": ["abs"],
+  "Roterende magemaskin": ["obliques"],
+  "Kabelcrunch": ["abs"],
+  "Kneløft i stativ": ["abs"],
+  "Pallof press": ["obliques"],
+  "Brystpress": ["chest", "shoulders", "triceps"],
+  "Skrå brystpress": ["chest", "shoulders", "triceps"],
+  "Pec Deck": ["chest"],
+  "Kabel-flyes": ["chest"],
+  "Brystpress med manualer": ["chest", "shoulders", "triceps"],
+  "Nedtrekk": ["lats", "upperBack", "biceps"],
+  "Sittende roing": ["lats", "upperBack", "biceps"],
+  "Bryststøttet roing": ["lats", "upperBack", "biceps"],
+  "Rygghev-maskin": ["lowerBack", "glutes", "hamstrings"],
+  "Assistert pull-up": ["lats", "upperBack", "biceps"],
+  "Face pull": ["upperBack", "shoulders"],
+  "Skulderpress": ["shoulders", "triceps"],
+  "Triceps Pushdown": ["triceps"],
+  "Biceps Curl": ["biceps"]
+};
+const muscleGroupsByCardioActivity = {
+  "Tredemølle": ["glutes", "quads", "hamstrings", "calves"],
+  "Sykling": ["glutes", "quads", "hamstrings", "calves"],
+  "Gåtur": ["glutes", "quads", "hamstrings", "calves"],
+  "Ellipsemaskin": ["glutes", "quads", "hamstrings", "calves"],
+  "Stakemaskin": ["shoulders", "triceps", "upperBack", "lats", "abs"]
 };
 const weekdays = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
 const groupClasses = [
@@ -140,7 +238,7 @@ function normalizeWorkoutPlan(savedPlan) {
       typeof exercise.name === "string" && exercise.name.trim().length > 0 && exercise.name.length <= 60 &&
       typeof exercise.detail === "string" && exercise.detail.trim().length > 0 && exercise.detail.length <= 120 &&
       (exercise.guide === undefined || typeof exercise.guide === "string") &&
-      (exercise.image === undefined || validImages.has(exercise.image)) &&
+      (exercise.image === undefined || exercise.image === "" || validImages.has(exercise.image)) &&
       (exercise.timed === undefined || typeof exercise.timed === "boolean") &&
       !usedIds.has(exercise.id) && usedIds.add(exercise.id)
     ).map((exercise) => ({
@@ -288,7 +386,7 @@ function renderWorkouts() {
         ${exercisePhoto
           ? `<img class="exercise-art" src="${exercisePhoto}" alt="${exercisePhotoAlt[exercise.name]}">`
           : exercise.image
-          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=39#${escapeHtml(exercise.image)}"></use></svg>`
+          ? `<svg class="exercise-art" role="img" aria-label="Illustrasjon av ${escapeHtml(exercise.name)}"><use href="./images/exercises.svg?v=54#${escapeHtml(exercise.image)}"></use></svg>`
           : '<span class="exercise-art exercise-art-placeholder" aria-hidden="true">🏋️</span>'}
         <div class="exercise-main"><h3>${escapeHtml(exercise.name)}</h3><p>${escapeHtml(exercise.detail)}</p><p class="exercise-guide">${escapeHtml(exercise.guide)}</p>
           ${exercise.timed ? "" : `<div class="lift-entry"><label>Vekt <span>(kg)</span><input type="number" min="0.5" max="1000" step="0.5" inputmode="decimal" placeholder="${previousWeight === null ? "f.eks. 20" : formatWeight(previousWeight)}" value="${savedWeight}" data-lift-weight data-lift-day="${escapeHtml(workout.day)}" data-lift-exercise="${escapeHtml(exercise.name)}" aria-label="Løftet vekt i kilo for ${escapeHtml(exercise.name)}"></label>${previousWeight === null ? "" : `<span class="previous-lift">Forrige: ${formatWeight(previousWeight)} kg</span>`}</div>`}
@@ -355,16 +453,30 @@ function saveWorkoutSession(workoutDay, date) {
 }
 
 function renderWorkoutHistory() {
-  const history = document.querySelector("#workoutHistory");
-  history.replaceChildren();
   const sessions = [...state.workoutSessions].sort((first, second) =>
     second.date.localeCompare(first.date) ||
     (second.createdAt || "").localeCompare(first.createdAt || "")
   );
-  if (sessions.length === 0) {
+  renderWorkoutHistoryList(
+    document.querySelector("#workoutHistory"),
+    sessions.filter((session) => !session.groupClass),
+    false
+  );
+  renderWorkoutHistoryList(
+    document.querySelector("#groupWorkoutHistory"),
+    sessions.filter((session) => session.groupClass),
+    true
+  );
+}
+
+function renderWorkoutHistoryList(history, sessions, isGroupClassHistory) {
+  history.replaceChildren();
+  if (!sessions.length) {
     const empty = document.createElement("li");
     empty.className = "cardio-empty";
-    empty.textContent = "Ingen treningsøkter er lagret ennå.";
+    empty.textContent = isGroupClassHistory
+      ? "Ingen gruppetimer er registrert ennå."
+      : "Ingen styrkeøkter er lagret ennå.";
     history.append(empty);
     return;
   }
@@ -429,6 +541,140 @@ function renderExercises() {
     item.append(name, remove);
     list.append(item);
   });
+  renderPlanExerciseOptions();
+}
+
+function renderPlanExerciseOptions() {
+  const select = document.querySelector("#planExerciseName");
+  const selectedName = select.value;
+  const category = document.querySelector("#planExerciseCategory").value;
+  const recommendations = exerciseRecommendations[category] || [];
+  select.replaceChildren(new Option("Velg øvelse", ""));
+  const day = document.querySelector("#planExerciseDay").value;
+  const existingForDay = new Set(state.workoutPlan[day].map((exercise) => exercise.name.toLocaleLowerCase("no")));
+  const plannedExercises = Array.from(new Set(workouts.flatMap((workout) =>
+    state.workoutPlan[workout.day].map((exercise) => exercise.name)
+  )));
+  const recommendationNames = new Set(recommendations.map((item) => item.name.toLocaleLowerCase("no")));
+  const plannedNames = new Set(plannedExercises.map((name) => name.toLocaleLowerCase("no")));
+  const customExercises = state.exercises.filter((name) =>
+    !plannedNames.has(name.toLocaleLowerCase("no")) &&
+    !recommendationNames.has(name.toLocaleLowerCase("no"))
+  );
+  const addGroup = (label, exercises, isRecommendation = false) => {
+    if (!exercises.length) return;
+    const group = document.createElement("optgroup");
+    group.label = label;
+    exercises.forEach((exercise) => {
+      const recommendation = isRecommendation ? exercise : recommendations.find((item) => item.name === exercise);
+      const name = isRecommendation ? exercise.name : exercise;
+      const option = new Option(
+        recommendation ? `${name} · ${recommendation.equipment}` : name,
+        name
+      );
+      option.disabled = existingForDay.has(name.toLocaleLowerCase("no"));
+      option.dataset.muscles = (
+        muscleGroupsByExercise[name] || muscleGroupsByCategory[category] || []
+      ).join(",");
+      option.dataset.equipment = recommendation?.equipment || name;
+      option.dataset.equipmentImage = exercisePhotos[name] || "";
+      if (recommendation) {
+        option.dataset.detail = recommendation.detail;
+        option.dataset.tip = recommendation.tip;
+      }
+      group.append(option);
+    });
+    select.append(group);
+  };
+  addGroup(`Forslag · ${category.toLocaleLowerCase("no")}`, recommendations, true);
+  addGroup("Øvelser i treningsplanen", plannedExercises.filter((name) =>
+    !recommendationNames.has(name.toLocaleLowerCase("no"))
+  ));
+  addGroup("Egne øvelser", customExercises);
+  if (Array.from(select.options).some((option) => option.value === selectedName)) {
+    select.value = selectedName;
+  }
+}
+
+function showPlanExerciseTip() {
+  const select = document.querySelector("#planExerciseName");
+  const option = select.selectedOptions[0];
+  const tip = document.querySelector("#planExerciseTip");
+  const equipmentPreview = document.querySelector("#planEquipmentPreview");
+  const equipmentImage = document.querySelector("#planEquipmentPhoto");
+  const hasEquipmentPhoto = Boolean(option?.dataset.equipmentImage);
+  equipmentPreview.hidden = !hasEquipmentPhoto;
+  equipmentImage.hidden = !hasEquipmentPhoto;
+  equipmentImage.alt = option?.dataset.equipment
+    ? `Bilde av ${option.dataset.equipment}`
+    : "";
+  if (option?.dataset.equipmentImage) {
+    equipmentImage.src = option.dataset.equipmentImage;
+  } else {
+    equipmentImage.removeAttribute("src");
+  }
+  document.querySelector("#planEquipmentLabel").textContent = option?.dataset.equipment || "Apparat";
+  const selectedMuscles = (option?.dataset.muscles || "")
+    .split(",")
+    .filter((muscle) => muscleLabels[muscle]);
+  const latestTraining = getLatestMuscleTraining();
+  document.querySelectorAll(".plan-exercise-help .muscle-map [data-muscle]").forEach((region) => {
+    const isSelected = selectedMuscles.includes(region.dataset.muscle);
+    const training = latestTraining.get(region.dataset.muscle);
+    region.classList.toggle("is-active", isSelected);
+    if (isSelected) {
+      region.dataset.recoveryStatus = training
+        ? getRecoveryStatus(getRecoveryPercent(training.date))
+        : "unknown";
+    } else {
+      delete region.dataset.recoveryStatus;
+    }
+  });
+  document.querySelector("#planMuscleLabels").textContent = selectedMuscles.length
+    ? selectedMuscles.map((muscle) => muscleLabels[muscle]).join(" · ")
+    : "Velg en øvelse for å se musklene som trenes.";
+  renderPlanExerciseRecovery(selectedMuscles);
+  if (!option?.value) {
+    tip.textContent = "Velg en muskelgruppe og øvelse for å se tips.";
+    return;
+  }
+  const recommendation = option.dataset.tip;
+  tip.textContent = recommendation
+    ? `${option.dataset.equipment}: ${recommendation} Start lett, øk gradvis og stopp hvis du får smerter.`
+    : "Tips: Velg en vekt du kan løfte med kontroll, og be gjerne en instruktør vise riktig innstilling.";
+}
+
+function renderPlanExerciseRecovery(muscles) {
+  const container = document.querySelector("#planExerciseRecovery");
+  container.replaceChildren();
+  if (!muscles.length) {
+    container.textContent = "Velg en øvelse for å se restitusjonsstatus.";
+    return;
+  }
+
+  const heading = document.createElement("strong");
+  heading.textContent = "Restitusjon nå (veiledende)";
+  const statuses = document.createElement("div");
+  statuses.className = "plan-muscle-recovery-list";
+  const latestTraining = getLatestMuscleTraining();
+
+  muscles.forEach((muscle) => {
+    const training = latestTraining.get(muscle);
+    const status = document.createElement("span");
+    status.className = "plan-muscle-recovery";
+    if (!training) {
+      status.textContent = `${muscleLabels[muscle]}: Ingen økt logget`;
+      status.dataset.recoveryStatus = "unknown";
+    } else {
+      const percent = getRecoveryPercent(training.date);
+      status.textContent = `${muscleLabels[muscle]}: ${percent}%`;
+      status.dataset.recoveryStatus = getRecoveryStatus(percent);
+      status.setAttribute("aria-label", `${muscleLabels[muscle]}: ${percent}% restituert, veiledende`);
+    }
+    statuses.append(status);
+  });
+
+  container.append(heading, statuses, createRecoveryLegend());
 }
 
 function renderWeights() {
@@ -460,9 +706,51 @@ function renderWeights() {
   const change = history.length > 1 ? latest.value - history[0].value : null;
   document.querySelector("#weightChange").textContent = change === null
     ? "–" : `${change > 0 ? "+" : ""}${formatWeight(change)} kg`;
-  renderChart(history);
+  renderProgressCharts();
+}
+
+function renderProgressCharts() {
+  const history = [...state.weights].sort((a, b) => a.date.localeCompare(b.date));
+  const range = getProgressDateRange("weight", history.map((entry) => entry.date));
+  renderChart(
+    range.valid ? history.filter((entry) => entry.date >= range.startDate && entry.date <= range.endDate) : [],
+    range
+  );
   renderStrengthProgress();
   renderCardioProgress();
+}
+
+function getProgressDateRange(prefix, availableDates) {
+  const period = document.querySelector(`#${prefix}Period`).value;
+  const today = localDate();
+  let startDate;
+  let endDate = today;
+  let error = "";
+
+  if (period === "custom") {
+    startDate = document.querySelector(`#${prefix}DateFrom`).value;
+    endDate = document.querySelector(`#${prefix}DateTo`).value;
+    if (!startDate || !endDate) {
+      error = "Velg både fra- og til-dato.";
+    } else if (startDate > endDate) {
+      error = "Fra-dato må være før til-dato.";
+    } else if (endDate > today) {
+      error = "Til-dato kan ikke være i fremtiden.";
+    }
+  } else if (period === "all") {
+    startDate = availableDates.length ? availableDates.reduce((earliest, date) => date < earliest ? date : earliest) : today;
+  } else {
+    const from = new Date(`${today}T12:00:00`);
+    from.setDate(from.getDate() - Number(period) + 1);
+    startDate = localDate(from);
+  }
+
+  const custom = document.querySelector(`#${prefix}CustomDates`);
+  custom.hidden = period !== "custom";
+  custom.querySelectorAll("input").forEach((input) => { input.max = today; });
+  const message = document.querySelector(`#${prefix}PeriodMessage`);
+  message.textContent = period === "custom" ? error : "";
+  return { startDate, endDate, error, valid: !error };
 }
 
 function renderStrengthProgress() {
@@ -492,6 +780,10 @@ function renderStrengthProgress() {
     })
     .filter(Boolean)
     .sort((first, second) => first.date.localeCompare(second.date));
+  const range = getProgressDateRange("strength", history.map((entry) => entry.date));
+  const filteredHistory = range.valid
+    ? history.filter((entry) => entry.date >= range.startDate && entry.date <= range.endDate)
+    : [];
 
   const summary = document.querySelector("#strengthSummary");
   const chart = document.querySelector("#strengthChart");
@@ -500,27 +792,27 @@ function renderStrengthProgress() {
   historyList.replaceChildren();
   chart.setAttribute("aria-label", `Graf over registrert løftevekt i ${selectedStrengthExercise}`);
 
-  if (history.length === 0) {
-    summary.textContent = "Registrer vekten på øvelsen under «Trening» for å starte grafen.";
+  if (filteredHistory.length === 0) {
+    summary.textContent = range.error || "Registrer vekten på øvelsen under «Trening» for å starte grafen.";
     const empty = document.createElement("p");
     empty.className = "chart-empty";
-    empty.textContent = "Ingen registrerte løftevekter ennå.";
+    empty.textContent = range.error ? "Kontroller datoperioden for å vise grafen." : "Ingen registrerte løftevekter i valgt periode.";
     chart.append(empty);
     return;
   }
 
-  const first = history[0];
-  const latest = history[history.length - 1];
+  const first = filteredHistory[0];
+  const latest = filteredHistory[filteredHistory.length - 1];
   const change = latest.weight - first.weight;
-  if (history.length === 1) {
-    summary.textContent = `Siste registrering: ${formatWeight(latest.weight)} kg · Legg inn en ny økt for å se utviklingen.`;
+  if (filteredHistory.length === 1) {
+    summary.textContent = `Siste registrering i valgt periode: ${formatWeight(latest.weight)} kg · Legg inn en ny økt for å se utviklingen.`;
   } else {
     const direction = change > 0 ? "sterkere med" : change < 0 ? "endring på" : "samme vekt";
-    summary.textContent = `${history.length} økter · ${formatWeight(first.weight)} → ${formatWeight(latest.weight)} kg (${direction} ${formatWeight(Math.abs(change))} kg)`;
+    summary.textContent = `${filteredHistory.length} økter · ${formatWeight(first.weight)} → ${formatWeight(latest.weight)} kg (${direction} ${formatWeight(Math.abs(change))} kg)`;
   }
 
-  drawStrengthChart(chart, history, selectedStrengthExercise);
-  [...history].reverse().slice(0, 8).forEach((entry) => {
+  drawStrengthChart(chart, filteredHistory, selectedStrengthExercise);
+  [...filteredHistory].reverse().slice(0, 8).forEach((entry) => {
     const row = document.createElement("li");
     const date = document.createElement("span");
     date.textContent = formatDate(entry.date);
@@ -580,6 +872,7 @@ function drawStrengthChart(container, history, exerciseName) {
   }
 
   const points = history.map((entry, index) => ({ x: pointX(index), y: pointY(entry.weight), ...entry }));
+  const dateLabelStep = Math.max(1, Math.ceil(points.length / 6));
   if (points.length > 1) {
     const line = document.createElementNS(svg.namespaceURI, "polyline");
     line.setAttribute("points", points.map((point) => `${point.x},${point.y}`).join(" "));
@@ -597,30 +890,39 @@ function drawStrengthChart(container, history, exerciseName) {
     marker.append(title);
     svg.append(marker);
 
-    const date = document.createElementNS(svg.namespaceURI, "text");
-    date.setAttribute("x", point.x);
-    date.setAttribute("y", height - 12);
-    date.setAttribute("text-anchor", history.length > 5 && index % 2 ? "end" : history.length > 5 ? "start" : "middle");
-    date.setAttribute("class", "strength-axis-label");
-    date.textContent = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" })
-      .format(new Date(`${point.date}T12:00:00`));
-    svg.append(date);
+    if (index % dateLabelStep === 0 || index === points.length - 1) {
+      const date = document.createElementNS(svg.namespaceURI, "text");
+      date.setAttribute("x", point.x);
+      date.setAttribute("y", height - 12);
+      date.setAttribute("text-anchor", "middle");
+      date.setAttribute("class", "strength-axis-label");
+      date.textContent = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" })
+        .format(new Date(`${point.date}T12:00:00`));
+      svg.append(date);
+    }
   });
   container.append(svg);
 }
 
-function renderChart(history) {
+function renderChart(history, range) {
   const container = document.querySelector("#weightChart");
   container.replaceChildren();
+  if (range.error) {
+    const empty = document.createElement("p");
+    empty.className = "chart-empty";
+    empty.textContent = "Kontroller datoperioden for å vise grafen.";
+    container.append(empty);
+    return;
+  }
   if (history.length < 2) {
     const empty = document.createElement("p");
     empty.className = "chart-empty";
-    empty.textContent = history.length ? "Legg inn en måling til for å se utviklingen." : "Vektutviklingen vises når du har registrert målinger.";
+    empty.textContent = history.length ? "Legg inn en måling til i valgt periode for å se utviklingen." : "Ingen vektmålinger i valgt periode.";
     container.append(empty);
     return;
   }
 
-  const values = history.slice(-8);
+  const values = history;
   const min = Math.min(...values.map((entry) => entry.value));
   const max = Math.max(...values.map((entry) => entry.value));
   const span = max - min || 1;
@@ -648,16 +950,14 @@ function renderChart(history) {
 }
 
 function renderCardioProgress() {
-  const days = Number(document.querySelector("#cardioPeriod").value);
   const activity = document.querySelector("#cardioFilter").value;
-  const today = localDate();
-  const from = new Date(`${today}T12:00:00`);
-  from.setDate(from.getDate() - days + 1);
-  const startDate = localDate(from);
-  const sessions = state.cardioSessions.filter((session) =>
-    session.date >= startDate && session.date <= today &&
-    (activity === "Alle" || session.activity === activity)
+  const matchingSessions = state.cardioSessions.filter((session) =>
+    activity === "Alle" || session.activity === activity
   );
+  const range = getProgressDateRange("cardio", matchingSessions.map((session) => session.date));
+  const sessions = range.valid ? matchingSessions.filter((session) =>
+    session.date >= range.startDate && session.date <= range.endDate
+  ) : [];
   const totalDurationSeconds = sessions.reduce((total, session) => total + Math.round(session.duration * 60), 0);
   const totalDistance = sessions.reduce((total, session) => total + (session.distance || 0), 0);
   const hasDistance = sessions.some((session) => session.distance !== undefined);
@@ -667,8 +967,16 @@ function renderCardioProgress() {
 
   const chart = document.querySelector("#cardioChart");
   chart.replaceChildren();
-  chart.setAttribute("aria-label", `Kondisjonsdistanse siste ${days} dager${activity === "Alle" ? "" : ` for ${activity}`}`);
+  chart.setAttribute("aria-label", `Kondisjonsdistanse ${activity === "Alle" ? "for alle aktiviteter" : `for ${activity}`}`);
   const summary = document.querySelector("#cardioChartSummary");
+  if (range.error) {
+    summary.textContent = range.error;
+    const empty = document.createElement("p");
+    empty.className = "chart-empty";
+    empty.textContent = "Kontroller datoperioden for å vise grafen.";
+    chart.append(empty);
+    return;
+  }
   if (!sessions.length) {
     summary.textContent = `Ingen økter i valgt periode${activity === "Alle" ? "." : ` for ${activity}.`}`;
     const empty = document.createElement("p");
@@ -679,20 +987,51 @@ function renderCardioProgress() {
   }
   summary.textContent = `${sessions.length} økter · ${formatDuration(totalDurationSeconds)}${hasDistance ? ` · ${formatDistance(totalDistance)} km` : ""}`;
 
-  const dailyDistance = new Map();
+  const rangeDays = Math.floor((new Date(`${range.endDate}T12:00:00`) - new Date(`${range.startDate}T12:00:00`)) / 86400000) + 1;
+  const bucket = rangeDays > 730 ? "month" : rangeDays > 60 ? "week" : "day";
+  const bucketedDistance = new Map();
+  const bucketForDate = (date) => {
+    if (bucket === "month") return `${date.slice(0, 7)}-01`;
+    if (bucket === "week") {
+      const offset = Math.floor((new Date(`${date}T12:00:00`) - new Date(`${range.startDate}T12:00:00`)) / 86400000);
+      const start = new Date(`${range.startDate}T12:00:00`);
+      start.setDate(start.getDate() + Math.floor(offset / 7) * 7);
+      return localDate(start);
+    }
+    return date;
+  };
   sessions.forEach((session) => {
-    dailyDistance.set(session.date, (dailyDistance.get(session.date) || 0) + (session.distance || 0));
+    const key = bucketForDate(session.date);
+    bucketedDistance.set(key, (bucketedDistance.get(key) || 0) + (session.distance || 0));
   });
-  const history = Array.from({ length: days }, (_, index) => {
-    const date = new Date(`${startDate}T12:00:00`);
-    date.setDate(date.getDate() + index);
-    const key = localDate(date);
-    return { date: key, distance: dailyDistance.get(key) || 0 };
-  });
-  drawCardioChart(chart, history, activity, days);
+  const history = [];
+  if (bucket === "day") {
+    for (let index = 0; index < rangeDays; index++) {
+      const date = new Date(`${range.startDate}T12:00:00`);
+      date.setDate(date.getDate() + index);
+      const key = localDate(date);
+      history.push({ date: key, distance: bucketedDistance.get(key) || 0 });
+    }
+  } else if (bucket === "week") {
+    for (let index = 0; index < rangeDays; index += 7) {
+      const date = new Date(`${range.startDate}T12:00:00`);
+      date.setDate(date.getDate() + index);
+      const key = localDate(date);
+      history.push({ date: key, distance: bucketedDistance.get(key) || 0 });
+    }
+  } else {
+    const month = new Date(`${range.startDate.slice(0, 7)}-01T12:00:00`);
+    const lastMonth = range.endDate.slice(0, 7);
+    while (localDate(month).slice(0, 7) <= lastMonth) {
+      const key = localDate(month);
+      history.push({ date: key, distance: bucketedDistance.get(key) || 0 });
+      month.setMonth(month.getMonth() + 1);
+    }
+  }
+  drawCardioChart(chart, history, activity);
 }
 
-function drawCardioChart(container, history, activity, periodDays) {
+function drawCardioChart(container, history, activity) {
   const width = 520;
   const height = 230;
   const margin = { top: 20, right: 14, bottom: 42, left: 48 };
@@ -726,6 +1065,7 @@ function drawCardioChart(container, history, activity, periodDays) {
     svg.append(label);
   }
 
+  const labelStep = Math.max(1, Math.ceil(history.length / 6));
   history.forEach((entry, index) => {
     const x = margin.left + slotWidth * index + (slotWidth - barWidth) / 2;
     const barHeight = entry.distance / max * plotHeight;
@@ -743,14 +1083,15 @@ function drawCardioChart(container, history, activity, periodDays) {
     }
     svg.append(bar);
 
-    if (periodDays === 7 || index % 5 === 0 || index === periodDays - 1) {
+    if (index % labelStep === 0 || index === history.length - 1) {
       const label = document.createElementNS(svg.namespaceURI, "text");
       label.setAttribute("x", x + barWidth / 2);
       label.setAttribute("y", height - 12);
       label.setAttribute("text-anchor", "middle");
       label.setAttribute("class", "strength-axis-label");
-      label.textContent = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" })
-        .format(new Date(`${entry.date}T12:00:00`));
+      label.textContent = entry.date.slice(8, 10) === "01" && history.length > 12
+        ? new Intl.DateTimeFormat("no-NO", { month: "short", year: "2-digit" }).format(new Date(`${entry.date}T12:00:00`))
+        : new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" }).format(new Date(`${entry.date}T12:00:00`));
       svg.append(label);
     }
   });
@@ -830,6 +1171,277 @@ function renderStats() {
   const todaysWorkout = workouts.find((workout) => state.workoutSchedule[workout.day].toLowerCase() === day);
   document.querySelector("#todayWorkout").textContent = todaysWorkout ? state.workoutSchedule[todaysWorkout.day] : "Hviledag";
   renderGroupClassStats();
+  renderRecovery();
+  showPlanExerciseTip();
+}
+
+function getDaysSinceRecovery(date) {
+  const [year, month, day] = localDate().split("-").map(Number);
+  const [trainedYear, trainedMonth, trainedDay] = date.split("-").map(Number);
+  return Math.max(0, Math.floor(
+    (Date.UTC(year, month - 1, day) - Date.UTC(trainedYear, trainedMonth - 1, trainedDay)) / 86400000
+  ));
+}
+
+function getRecoveryPercent(date) {
+  if (!date) return null;
+  return Math.min(100, Math.round(getDaysSinceRecovery(date) / 2 * 100));
+}
+
+function getRecoveryStatus(percent) {
+  if (percent >= 100) return "ready";
+  if (percent <= 0) return "resting";
+  return "recovering";
+}
+
+function createRecoveryLegend() {
+  const legend = document.createElement("div");
+  legend.className = "muscle-recovery-legend";
+  legend.setAttribute("role", "group");
+  legend.setAttribute("aria-label", "Fargeforklaring for restitusjon");
+  [
+    ["resting", "0% · Ikke klar"],
+    ["recovering", "50% · Restituerer"],
+    ["ready", "100% · Klar"]
+  ].forEach(([status, label]) => {
+    const item = document.createElement("span");
+    item.dataset.recoveryStatus = status;
+    item.textContent = label;
+    legend.append(item);
+  });
+  return legend;
+}
+
+function getLatestMuscleTraining() {
+  const latestTraining = new Map();
+  const exerciseMuscles = new Map();
+  const equipmentByExercise = Object.fromEntries(
+    Object.values(exerciseRecommendations).flat().map(({ name, equipment }) => [name, equipment])
+  );
+  Object.assign(equipmentByExercise, {
+    "Skulderpress": "Skulderpressmaskin",
+    "Triceps Pushdown": "Kabelapparat",
+    "Biceps Curl": "Bicepscurlmaskin"
+  });
+
+  workouts.forEach(({ day }) => {
+    (state.workoutPlan[day] || []).forEach((exercise) => {
+      exerciseMuscles.set(workoutExerciseKey(day, exercise), {
+        name: exercise.name,
+        equipment: equipmentByExercise[exercise.name] || exercise.name,
+        muscles: muscleGroupsByExercise[exercise.name] || [],
+        type: "strength"
+      });
+    });
+  });
+
+  const recordTraining = (muscle, date, exercise) => {
+    const previous = latestTraining.get(muscle);
+    if (!previous || date > previous.date) {
+      latestTraining.set(muscle, { date, exercises: [exercise] });
+    } else if (date === previous.date &&
+      !previous.exercises.some((item) => item.name === exercise.name && item.type === exercise.type)) {
+      previous.exercises.push(exercise);
+    }
+  };
+
+  Object.entries(state.completed).forEach(([date, entries]) => {
+    if (!isValidStoredDate(date) || !Array.isArray(entries)) return;
+    entries.forEach((key) => {
+      const exercise = exerciseMuscles.get(key);
+      exercise?.muscles.forEach((muscle) => {
+        recordTraining(muscle, date, exercise);
+      });
+    });
+  });
+
+  state.cardioSessions.forEach((session) => {
+    if (!isValidStoredDate(session.date)) return;
+    const muscles = muscleGroupsByCardioActivity[session.activity] || [];
+    const activity = {
+      name: session.activity,
+      equipment: session.activity,
+      muscles,
+      type: "cardio"
+    };
+    muscles.forEach((muscle) => recordTraining(muscle, session.date, activity));
+  });
+
+  return latestTraining;
+}
+
+function renderRecoveryMuscleMap(muscles) {
+  const container = document.querySelector("#recoveryMuscleMap");
+  const source = document.querySelector(".muscle-map");
+  const map = source.cloneNode(true);
+  map.classList.add("recovery-muscle-map-svg");
+  map.setAttribute("role", "img");
+  map.setAttribute("aria-label", muscles.length
+    ? `Kroppskart med muskelgrupper og restitusjonsfarge trent siste 7 dager: ${muscles.map(([muscle, training]) => `${muscleLabels[muscle]} ${getRecoveryPercent(training.date)} prosent`).join(", ")}`
+    : "Kroppskart for muskelgrupper trent den siste tiden");
+  map.removeAttribute("aria-labelledby");
+  map.querySelector("title").textContent = "Muskelgrupper trent siste 7 dager";
+  map.querySelector("desc").textContent = "Rødt viser 0 prosent, oransje 50 prosent, og grønt 100 prosent veiledende restitusjon. Både styrke og kondisjonsøkter inngår.";
+  map.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+  map.querySelectorAll("[data-muscle]").forEach((region) => {
+    const entry = muscles.find(([muscle]) => muscle === region.dataset.muscle);
+    region.classList.toggle("is-active", Boolean(entry));
+    if (entry) {
+      region.dataset.recoveryStatus = getRecoveryStatus(getRecoveryPercent(entry[1].date));
+    } else {
+      delete region.dataset.recoveryStatus;
+    }
+  });
+  container.replaceChildren(map, createRecoveryLegend());
+}
+
+function renderRecovery() {
+  const list = document.querySelector("#recoveryList");
+  const latestTraining = getLatestMuscleTraining();
+  const recentGroups = [...latestTraining.entries()]
+    .filter(([, training]) => getDaysSinceRecovery(training.date) <= 7)
+    .sort(([firstMuscle, firstDate], [secondMuscle, secondDate]) =>
+      secondDate.date.localeCompare(firstDate.date) ||
+      muscleLabels[firstMuscle].localeCompare(muscleLabels[secondMuscle], "no")
+    );
+
+  renderRecoveryMuscleMap(recentGroups);
+  list.replaceChildren();
+  if (!recentGroups.length) {
+    const empty = document.createElement("li");
+    empty.className = "recovery-empty";
+    empty.textContent = "Ingen styrke- eller kondisjonsøkter med kjente muskelgrupper er registrert den siste tiden. Loggfør øktene dine for å følge restitusjonen her.";
+    list.append(empty);
+    renderRecoveryWorkoutTip(latestTraining);
+    return;
+  }
+
+  recentGroups.forEach(([muscle, training]) => {
+    const { date, exercises } = training;
+    const percent = getRecoveryPercent(date);
+    const status = getRecoveryStatus(percent);
+    const row = document.createElement("li");
+    row.className = "recovery-item";
+    row.dataset.recoveryStatus = status;
+
+    const heading = document.createElement("div");
+    heading.className = "recovery-item-heading";
+    const name = document.createElement("strong");
+    name.textContent = muscleLabels[muscle];
+    const percentage = document.createElement("span");
+    percentage.textContent = `${percent}%`;
+    heading.append(name, percentage);
+
+    const track = document.createElement("div");
+    track.className = "recovery-track";
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-label", `${muscleLabels[muscle]}: ${percent}% restituert, veiledende`);
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", "100");
+    track.setAttribute("aria-valuenow", String(percent));
+    const fill = document.createElement("span");
+    fill.style.width = `${percent}%`;
+    track.append(fill);
+
+    const details = document.createElement("small");
+    const trainedDate = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" })
+      .format(new Date(`${date}T12:00:00`));
+    const remainingHours = Math.max(0, 48 - getDaysSinceRecovery(date) * 24);
+    const recoveryText = percent === 100
+      ? "Klar etter standardanslaget"
+      : remainingHours === 24 ? "Omtrent ett døgn igjen"
+        : remainingHours === 48 ? "Trent i dag · omtrent to døgn igjen"
+          : "Trent i går · omtrent ett døgn igjen";
+    details.textContent = `Sist trent ${trainedDate} · ${recoveryText}`;
+    const lastExercise = document.createElement("small");
+    const strengthEntries = exercises.filter((exercise) => exercise.type !== "cardio");
+    const cardioEntries = exercises.filter((exercise) => exercise.type === "cardio");
+    const lastTrainingDetails = [];
+    if (strengthEntries.length) {
+      const names = [...new Set(strengthEntries.map((exercise) => exercise.name))];
+      const equipment = [...new Set(strengthEntries.map((exercise) => exercise.equipment))];
+      lastTrainingDetails.push(`Styrke: ${names.join(", ")} · Apparat: ${equipment.join(", ")}`);
+    }
+    if (cardioEntries.length) {
+      const activities = [...new Set(cardioEntries.map((exercise) => exercise.name))];
+      lastTrainingDetails.push(`O2: ${activities.join(", ")}`);
+    }
+    lastExercise.textContent = `Sist trent med: ${lastTrainingDetails.join(" · ")}`;
+    lastExercise.className = "recovery-last-exercise";
+    row.append(heading, track, details, lastExercise);
+    list.append(row);
+  });
+  renderRecoveryWorkoutTip(latestTraining);
+}
+
+function renderRecoveryWorkoutTip(latestTraining) {
+  const container = document.querySelector("#recoveryWorkoutTip");
+  container.replaceChildren();
+
+  const heading = document.createElement("h3");
+  heading.textContent = "Treningstips ut fra restitusjonen";
+  const workoutOptions = workouts.map((workout) => {
+    const exercises = state.workoutPlan[workout.day] || [];
+    const muscles = [...new Set(exercises.flatMap((exercise) =>
+      muscleGroupsByExercise[exercise.name] || []
+    ))];
+    const trackedMuscles = muscles.filter((muscle) => latestTraining.has(muscle));
+    const recoveredMuscles = trackedMuscles.filter((muscle) =>
+      getRecoveryPercent(latestTraining.get(muscle).date) === 100
+    );
+    const restingMuscles = trackedMuscles.filter((muscle) =>
+      getRecoveryPercent(latestTraining.get(muscle).date) < 100
+    );
+    return { workout, exercises, muscles, trackedMuscles, recoveredMuscles, restingMuscles };
+  });
+  const fullyReady = workoutOptions
+    .filter((option) => option.exercises.length && option.restingMuscles.length === 0)
+    .sort((first, second) =>
+      second.recoveredMuscles.length - first.recoveredMuscles.length ||
+      second.muscles.length - first.muscles.length
+    );
+
+  const message = document.createElement("p");
+  if (fullyReady.length && fullyReady[0].trackedMuscles.length) {
+    const recommendation = fullyReady[0];
+    const name = document.createElement("strong");
+    name.textContent = `Forslag: ${recommendation.workout.title}. `;
+    message.append(name, document.createTextNode(
+      `Muskelgruppene som er loggført for denne økten, er beregnet til 100 % restitusjon.`
+    ));
+    if (recommendation.muscles.length > recommendation.trackedMuscles.length) {
+      message.append(document.createTextNode(
+        " Noen muskler i økten mangler treningslogg, så vurder dagsformen for dem."
+      ));
+    }
+  } else if (fullyReady.length) {
+    message.textContent = "Det finnes ikke nok treningslogg til å beregne restitusjon for styrkeøktene ennå. Loggfør øvelsene, eller velg en lett økt etter dagsform.";
+  } else {
+    const readyMuscles = [...latestTraining.entries()]
+      .filter(([, training]) => getRecoveryPercent(training.date) === 100)
+      .map(([muscle]) => muscleLabels[muscle]);
+    message.textContent = readyMuscles.length
+      ? `Ingen av styrkeøktene i planen er helt restituert ennå. ${readyMuscles.join(", ")} er klare; vurder å vente med økter som belaster de andre muskelgruppene.`
+      : "De loggførte muskelgruppene er fortsatt i restitusjon. Vurder hvile eller rolig bevegelighet i dag, og vent med å belaste dem hardt.";
+  }
+
+  const note = document.createElement("small");
+  note.textContent = "Dette er et enkelt anslag ut fra treningsdato, ikke en måling av kroppen. Avslutt eller tilpass økten hvis du kjenner smerter eller uvanlig slitenhet.";
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.showStrengthPlan = "";
+  button.textContent = "Se styrkeøktene i planen";
+  container.append(heading, message, note, button);
+}
+
+function setTrainingFilter(category) {
+  const selected = ["cardio", "strength", "groups"].includes(category) ? category : "cardio";
+  document.querySelectorAll("[data-training-category]").forEach((panel) => {
+    panel.hidden = panel.dataset.trainingCategory !== selected;
+  });
+  document.querySelectorAll("[data-training-filter]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.trainingFilter === selected));
+  });
 }
 
 function render() {
@@ -1625,7 +2237,7 @@ document.querySelector("#addCardioField").addEventListener("click", () => {
 });
 
 const pageNavigation = document.querySelector(".main-nav");
-const pageIds = new Set(["oversikt", "trening", "progresjon", "bilder", "kroppsvekt", "innstillinger"]);
+const pageIds = new Set(["oversikt", "trening", "restitusjon", "progresjon", "bilder", "kroppsvekt", "innstillinger"]);
 
 function showPage(pageId, updateHistory = false) {
   const activePage = pageIds.has(pageId) ? pageId : "oversikt";
@@ -1660,7 +2272,7 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   const minutes = Number(document.querySelector("#cardioMinutes").value);
   const seconds = Number(document.querySelector("#cardioSeconds").value);
   const durationSeconds = minutes * 60 + seconds;
-  const distance = optionalNumber(document.querySelector("#cardioDistance")?.value);
+  const distance = Number(document.querySelector("#cardioDistance").value);
   const speed = optionalNumber(document.querySelector("#cardioSpeed")?.value);
   const incline = optionalNumber(document.querySelector("#cardioIncline")?.value);
   const paceSeconds = parsePace(document.querySelector("#cardioPace")?.value || "");
@@ -1670,7 +2282,7 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
       !Number.isInteger(minutes) || minutes < 0 || minutes > 600 ||
       !Number.isInteger(seconds) || seconds < 0 || seconds > 59 ||
       durationSeconds < 1 || durationSeconds > 36000 ||
-      (distance !== undefined && (!Number.isFinite(distance) || distance < 0 || distance > 1000)) ||
+      !Number.isFinite(distance) || distance < 0 || distance > 1000 ||
       (speed !== undefined && (!Number.isFinite(speed) || speed < 0.1 || speed > 100)) ||
       (incline !== undefined && (!Number.isFinite(incline) || incline < 0 || incline > 100)) ||
       paceSeconds === null ||
@@ -1694,13 +2306,26 @@ document.querySelector("#cardioForm").addEventListener("submit", (event) => {
   saveState();
   renderCardioSessions();
   renderCardioProgress();
+  renderStats();
   document.querySelector("#cardioMinutes").value = "";
   document.querySelector("#cardioSeconds").value = "";
+  document.querySelector("#cardioDistance").value = "";
   document.querySelector("#cardioOptionalFields").replaceChildren();
   document.querySelector("#cardioFieldSelect").value = "";
   updateCardioFieldOptions();
   document.querySelector("#cardioDate").value = localDate();
   showToast("Kondisjonsøkten er lagret.");
+});
+
+document.querySelector(".training-filters").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-training-filter]");
+  if (button) setTrainingFilter(button.dataset.trainingFilter);
+});
+
+document.querySelector("#recoveryWorkoutTip").addEventListener("click", (event) => {
+  if (!event.target.closest("[data-show-strength-plan]")) return;
+  showPage("trening", true);
+  setTrainingFilter("strength");
 });
 
 document.querySelector("#cardioHistory").addEventListener("click", (event) => {
@@ -1715,11 +2340,23 @@ document.querySelector("#cardioHistory").addEventListener("click", (event) => {
   saveState();
   renderCardioSessions();
   renderCardioProgress();
+  renderStats();
   showToast("Kondisjonsøkten er slettet.");
 });
 
 document.querySelector("#cardioPeriod").addEventListener("change", renderCardioProgress);
 document.querySelector("#cardioFilter").addEventListener("change", renderCardioProgress);
+document.querySelector("#weightPeriod").addEventListener("change", renderProgressCharts);
+document.querySelector("#strengthPeriod").addEventListener("change", renderStrengthProgress);
+document.querySelectorAll("#weightCustomDates input").forEach((input) =>
+  input.addEventListener("change", renderProgressCharts)
+);
+document.querySelectorAll("#strengthCustomDates input").forEach((input) =>
+  input.addEventListener("change", renderStrengthProgress)
+);
+document.querySelectorAll("#cardioCustomDates input").forEach((input) =>
+  input.addEventListener("change", renderCardioProgress)
+);
 document.querySelector("#strengthHistory").addEventListener("click", handleHistoryEdit);
 
 document.querySelector("#editForm").addEventListener("submit", (event) => {
@@ -1895,6 +2532,28 @@ document.querySelector("#strengthExercise").addEventListener("change", (event) =
 
 document.querySelector("#groupClassPeriod").addEventListener("change", renderGroupClassStats);
 
+document.querySelector("#planExerciseCategory").addEventListener("change", () => {
+  renderPlanExerciseOptions();
+  document.querySelector("#planExerciseName").value = "";
+  showPlanExerciseTip();
+});
+
+document.querySelector("#planExerciseDay").addEventListener("change", () => {
+  renderPlanExerciseOptions();
+  document.querySelector("#planExerciseName").value = "";
+  showPlanExerciseTip();
+});
+
+document.querySelector("#planExerciseName").addEventListener("change", () => {
+  const option = document.querySelector("#planExerciseName").selectedOptions[0];
+  if (option?.dataset.detail) {
+    document.querySelector("#planExerciseDetail").value = option.dataset.detail;
+  } else {
+    document.querySelector("#planExerciseDetail").value = "";
+  }
+  showPlanExerciseTip();
+});
+
 document.querySelector("#planExerciseForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const day = document.querySelector("#planExerciseDay").value;
@@ -1914,11 +2573,17 @@ document.querySelector("#planExerciseForm").addEventListener("submit", (event) =
   const id = typeof crypto.randomUUID === "function"
     ? `custom-${crypto.randomUUID()}`
     : `custom-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const previousPlan = state.workoutPlan[day];
   state.workoutPlan[day].push({ id, name, detail, guide: "", image: "", timed: false });
-  saveState();
+  if (!saveState()) {
+    state.workoutPlan[day] = previousPlan;
+    render();
+    return;
+  }
   render();
   document.querySelector("#planExerciseName").value = "";
   document.querySelector("#planExerciseDetail").value = "";
+  showPlanExerciseTip();
   showToast(`${name} er lagt til på ${day}.`);
 });
 
@@ -1935,8 +2600,13 @@ document.querySelector("#workoutPlan").addEventListener("click", (event) => {
   const { removePlanDay: day, removePlanId: id } = button.dataset;
   const exercise = state.workoutPlan[day]?.find((item) => item.id === id);
   if (!exercise) return;
+  const previousPlan = state.workoutPlan[day];
   state.workoutPlan[day] = state.workoutPlan[day].filter((item) => item.id !== id);
-  saveState();
+  if (!saveState()) {
+    state.workoutPlan[day] = previousPlan;
+    render();
+    return;
+  }
   render();
   showToast(`${exercise.name} er fjernet fra ${day}.`);
 });
@@ -2035,7 +2705,7 @@ document.querySelector("#groupWorkoutForm").addEventListener("submit", (event) =
   showToast(`${groupClass} er lagret for ${formatDate(date)}.`);
 });
 
-document.querySelector("#workoutHistory").addEventListener("click", (event) => {
+function handleWorkoutHistoryClick(event) {
   const button = event.target.closest("[data-remove-workout-session]");
   if (!button) return;
   state.workoutSessions = state.workoutSessions.filter((session) => session.id !== button.dataset.removeWorkoutSession);
@@ -2043,7 +2713,10 @@ document.querySelector("#workoutHistory").addEventListener("click", (event) => {
   renderWorkoutHistory();
   renderStats();
   showToast("Treningsøkten er slettet fra historikken.");
-});
+}
+
+document.querySelector("#workoutHistory").addEventListener("click", handleWorkoutHistoryClick);
+document.querySelector("#groupWorkoutHistory").addEventListener("click", handleWorkoutHistoryClick);
 
 document.querySelector("#exerciseForm").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -2217,7 +2890,7 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=39")
+    navigator.serviceWorker.register("./service-worker.js?v=67")
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }
