@@ -1,5 +1,15 @@
 const STORAGE_KEY = "min-pt-app-v1";
 const PHOTO_DATABASE = "min-pt-media-v1";
+const motivationMessages = [
+  "Målet er ikke å trene perfekt. Målet er å møte opp.",
+  "Små økter gjentatt gir store resultater.",
+  "Du trenger ikke å være sterk i dag. Du må bare ta første steg.",
+  "Fremdrift skjer når du gjør det litt igjen.",
+  "En treningsøkt er en gave til fremtidige deg.",
+  "Hold tempoet. Konsistens slår intensitet over tid.",
+  "Du er sterkere enn grunnen du bruker for å stå over.",
+  "Møt opp for deg selv – resten kommer etterpå."
+];
 const visibleHistoryLimit = 3;
 const expandedHistoryLists = new Set();
 const cardioActivities = ["Tredemølle", "Sykling", "Gåtur", "Ellipsemaskin", "Stakemaskin"];
@@ -335,11 +345,14 @@ function loadState() {
         isOptionalIntegerInRange(entry.paceSeconds, 1, 5999) &&
         (entry.comment === undefined || (typeof entry.comment === "string" && entry.comment.length <= 500))
       ) : [],
-      theme: saved.theme === "light" ? "light" : "dark"
+      theme: saved.theme === "light" ? "light" : "dark",
+      motivationNotifications: saved.motivationNotifications === true,
+      motivationTime: ["08:00", "12:00", "18:00", "20:00"].includes(saved.motivationTime) ? saved.motivationTime : "18:00",
+      motivationLastSent: typeof saved.motivationLastSent === "string" ? saved.motivationLastSent : ""
     };
   } catch (error) {
     console.error("Kunne ikke lese lagrede treningsdata.", error);
-    return { weights: [], exercises: [], workoutPlan: defaultWorkoutPlan(), workoutSchedule: defaultWorkoutSchedule(), lifts: {}, completed: {}, workoutSessions: [], cardioSessions: [], theme: "dark" };
+    return { weights: [], exercises: [], workoutPlan: defaultWorkoutPlan(), workoutSchedule: defaultWorkoutSchedule(), lifts: {}, completed: {}, workoutSessions: [], cardioSessions: [], theme: "dark", motivationNotifications: false, motivationTime: "18:00", motivationLastSent: "" };
   }
 }
 
@@ -1490,6 +1503,7 @@ function render() {
   renderStats();
   document.documentElement.dataset.theme = state.theme;
   document.querySelector("#themeToggle").checked = state.theme === "dark";
+  renderMotivationSettings();
 }
 
 function renderCardioSessions() {
@@ -2794,6 +2808,99 @@ document.querySelector("#themeToggle").addEventListener("change", (event) => {
   saveState();
 });
 
+function getMotivationMessage(date = new Date()) {
+  const daySeed = Number(localDate(date).replaceAll("-", ""));
+  return motivationMessages[daySeed % motivationMessages.length];
+}
+
+async function sendMotivationNotification(test = false) {
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+    showToast("Varsler støttes ikke i denne nettleseren.");
+    return false;
+  }
+  if (Notification.permission !== "granted") {
+    showToast("Tillat varsler i nettleseren for å bruke denne funksjonen.");
+    return false;
+  }
+  const registration = await navigator.serviceWorker.ready;
+  await registration.showNotification("Min PT", {
+    body: getMotivationMessage(),
+    icon: "./icons/icon-192.png",
+    badge: "./icons/icon-192.png",
+    tag: test ? "min-pt-motivation-test" : "min-pt-motivation",
+    renotify: test
+  });
+  if (!test) {
+    state.motivationLastSent = localDate();
+    saveState();
+  }
+  return true;
+}
+
+function renderMotivationSettings() {
+  const enabled = document.querySelector("#motivationToggle");
+  const time = document.querySelector("#motivationTime");
+  const status = document.querySelector("#motivationStatus");
+  enabled.checked = state.motivationNotifications;
+  time.value = state.motivationTime;
+  time.disabled = !state.motivationNotifications;
+  if (!("Notification" in window)) status.textContent = "Varsler støttes ikke i denne nettleseren.";
+  else if (Notification.permission === "denied") status.textContent = "Varsler er blokkert i nettleserens innstillinger.";
+  else if (state.motivationNotifications) status.textContent = `Daglig motiverende varsel kl. ${state.motivationTime}.`;
+  else status.textContent = "Får et norsk treningsslagord én gang daglig.";
+}
+
+document.querySelector("#motivationToggle").addEventListener("change", async (event) => {
+  if (!event.target.checked) {
+    state.motivationNotifications = false;
+    saveState();
+    renderMotivationSettings();
+    showToast("Motiverende varsler er slått av.");
+    return;
+  }
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+    event.target.checked = false;
+    showToast("Varsler støttes ikke i denne nettleseren.");
+    return;
+  }
+  let permission = Notification.permission;
+  if (permission === "default") permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    event.target.checked = false;
+    showToast("Tillat varsler i nettleseren for å slå på motivasjon.");
+    renderMotivationSettings();
+    return;
+  }
+  state.motivationNotifications = true;
+  saveState();
+  renderMotivationSettings();
+  await sendMotivationNotification(true);
+  showToast("Daglige motiverende varsler er slått på.");
+});
+
+document.querySelector("#motivationTime").addEventListener("change", (event) => {
+  state.motivationTime = event.target.value;
+  state.motivationLastSent = "";
+  saveState();
+  renderMotivationSettings();
+});
+
+document.querySelector("#testMotivationNotification").addEventListener("click", async () => {
+  const sent = await sendMotivationNotification(true);
+  if (sent) showToast("Testvarselet ble sendt.");
+});
+
+function checkScheduledMotivation() {
+  if (!state.motivationNotifications || Notification.permission !== "granted") return;
+  const today = localDate();
+  if (state.motivationLastSent === today) return;
+  const now = new Date();
+  const [hour, minute] = state.motivationTime.split(":").map(Number);
+  if (now.getHours() > hour || (now.getHours() === hour && now.getMinutes() >= minute)) {
+    sendMotivationNotification(false);
+  }
+}
+
 document.querySelector("#clearData").addEventListener("click", async () => {
   if (!window.confirm("Slette alle lagrede vektmålinger, kondisjonsøkter, treningsøkter, egne øvelser og bilder?")) return;
   try {
@@ -2810,6 +2917,9 @@ document.querySelector("#clearData").addEventListener("click", async () => {
   state.workoutSchedule = defaultWorkoutSchedule();
   state.completed = {};
   state.workoutSessions = [];
+  state.motivationNotifications = false;
+  state.motivationTime = "18:00";
+  state.motivationLastSent = "";
   Object.keys(selectedWorkoutDates).forEach((day) => delete selectedWorkoutDates[day]);
   state.cardioSessions = [];
   localStorage.removeItem("weight");
@@ -2940,7 +3050,11 @@ document.querySelector("#installButton").addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=68")
+    navigator.serviceWorker.register("./service-worker.js?v=69")
+      .then(() => {
+        checkScheduledMotivation();
+        window.setInterval(checkScheduledMotivation, 60000);
+      })
       .catch((error) => console.error("Kunne ikke registrere service worker.", error));
   });
 }

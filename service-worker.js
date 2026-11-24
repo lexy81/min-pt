@@ -1,12 +1,12 @@
-const CACHE_NAME = "min-pt-cache-v68";
+const CACHE_NAME = "min-pt-cache-v69";
 const APP_FILES = [
-  "./?v=68",
-  "./index.html?v=68",
-  "./style.css?v=68",
-  "./app.js?v=68",
-  "./manifest.json?v=68",
-  "./service-worker.js?v=68",
-  "./images/exercises.svg?v=68",
+  "./?v=69",
+  "./index.html?v=69",
+  "./style.css?v=69",
+  "./app.js?v=69",
+  "./manifest.json?v=69",
+  "./service-worker.js?v=69",
+  "./images/exercises.svg?v=69",
   "./images/brystpress-machine.png",
   "./images/skulderpress-machine.png",
   "./images/pec-deck-machine.png",
@@ -56,6 +56,19 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       });
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if ("focus" in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow("./");
+      return undefined;
     })
   );
 });

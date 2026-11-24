@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#2e7d32">
   <meta name="description" content="Min PT – din personlige treningspartner og treningsdagbok.">
   <title>Min PT</title>
-  <link rel="manifest" href="manifest.json?v=68">
+  <link rel="manifest" href="manifest.json?v=69">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=68">
-  <script src="app.js?v=68" defer></script>
+  <link rel="stylesheet" href="style.css?v=69">
+  <script src="app.js?v=69" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -436,6 +436,9 @@
       <div class="section-heading"><div><p class="eyebrow">DIN APP</p><h2>Innstillinger</h2></div></div>
       <section class="card settings-card">
         <label class="theme-setting" for="themeToggle"><span><strong>Mørkt tema</strong><small>Skånsomt for øynene når du trener.</small></span><input type="checkbox" id="themeToggle" checked><span class="switch" aria-hidden="true"></span></label>
+        <label class="theme-setting" for="motivationToggle"><span><strong>Motiverende varsler</strong><small id="motivationStatus">Får et norsk treningsslagord én gang daglig.</small></span><input type="checkbox" id="motivationToggle"><span class="switch" aria-hidden="true"></span></label>
+        <div class="settings-row motivation-time-row"><span><strong>Varslingstid</strong><small>Velg et tidspunkt som passer deg.</small></span><select id="motivationTime" aria-label="Varslingstid"><option value="08:00">08:00</option><option value="12:00">12:00</option><option value="18:00">18:00</option><option value="20:00">20:00</option></select></div>
+        <div class="settings-row"><span><strong>Testvarsel</strong><small>Kontroller at varsler vises på denne enheten.</small></span><button type="button" class="button-secondary" id="testMotivationNotification">Send nå</button></div>
         <div class="settings-row"><span><strong>Dataene dine</strong><small>Treningsdata og bilder lagres lokalt på denne enheten.</small></span><button type="button" class="button-secondary" id="clearData">Slett alle data</button></div>
         <div class="backup-tools">
           <div><strong>Sikkerhetskopi</strong><small>Ta med treningsdata og bilder til en annen telefon.</small></div>

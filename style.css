@@ -294,6 +294,7 @@ button:hover { background: #388e3c; }
 .theme-setting input:checked + .switch::after { transform: translateX(19px); }
 .theme-setting input:focus-visible + .switch { outline: 2px solid white; outline-offset: 2px; }
 .settings-row { border-top: 1px solid var(--border); border-bottom: 0; }
+.motivation-time-row select { min-width: 92px; }
 .button-secondary { padding: 8px 11px; border: 1px solid #70443e; background: #392521; color: #ffb4a9; font-size: .82rem; }
 .button-secondary:hover { background: #54312b; }
 .install-button { width: 100%; margin: 0 0 10px; }
